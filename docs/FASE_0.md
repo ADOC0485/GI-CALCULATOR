@@ -2,6 +2,8 @@
 
 Preparación realizada; pendiente de aprobación para Fase 1.
 
+Actualización posterior: el usuario aprobó comenzar según el plan. Fase 0 registrada en el commit local `2570fc6`; desarrollo de Fase 1 en `codex/fase-1-base`. La conexión GitHub añadida después del diagnóstico inicial confirmó permisos de lectura y escritura; la sección de repositorio siguiente conserva el resultado histórico de la CLI.
+
 ## Repositorio
 
 Directorio inicial con solo `.git`, rama local `master`, sin commits, archivos de aplicación ni remoto. No se encontraron instrucciones AGENTS.md en los directorios ancestros inspeccionados. Se añadieron únicamente documentación y `.gitignore`.

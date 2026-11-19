@@ -14,6 +14,7 @@ lib/
   features/
     catalog/{domain,data,presentation}/
     progression/{domain,data,presentation}/
+    wishes/{domain,data,presentation}/
     inventory/{domain,data,presentation}/
     resin/{domain,data,presentation}/
     planner/{domain,data,presentation}/
@@ -69,7 +70,7 @@ Freezed 4.0.3 y json_serializable 6.15.2 se evaluarán al modelar DTOs: no añad
 | 0 | Entorno, fuentes, riesgos, arquitectura y plan revisables |
 | 1 | Scaffold Windows, tema propio, navegación y persistencia mínima; analyze, widget test, escritura/reapertura SQLite y compilación Windows |
 | 2 | Catálogo validado, procedencia, importación transaccional; rechazo de duplicados y datos incompletos |
-| 3 | Personajes 1→90 y 80→90; armas 1→90 y 40→90; talentos 1/10/10 y parciales; resultados contrastados con tablas verificadas |
+| 3 | Personajes 1→90 y 80→90; armas 1→90 y 40→90; talentos 1/10/10 y parciales; calculadora de deseos según DESEOS.md; resultados contrastados con reglas verificadas |
 | 4 | Inventario suficiente/insuficiente, reservas compartidas, conversiones y confirmación de consumo |
 | 5 | Regeneración, capacidad, consumibles y recompensas variables; pruebas de límites y supuestos |
 | 6 | Dominios, reinicios, zona horaria, fin de mes/año, predicción, registro de recompensas y replanificación |
@@ -80,6 +81,8 @@ Freezed 4.0.3 y json_serializable 6.15.2 se evaluarán al modelar DTOs: no añad
 
 Tras cada fase: pruebas reales, documentación, pendientes, revisión y autorización antes de avanzar. Commits después de aprobación. Los datos de prueba sintéticos deberán marcarse como tales y nunca constituir un catálogo real.
 
+Actualización visual solicitada durante Fase 1: diseño minimalista pastel, modo oscuro de bajo brillo y opción Sistema con persistencia. Navegación ampliada con Deseos; especificación en [DESEOS.md](DESEOS.md). La pantalla Deseos de Fase 1 solo identifica la función futura.
+
 ## Riesgos y mitigaciones
 
 - Cobertura y licencia de datos: auditar cada fuente y restringir el primer catálogo a registros verificables; sin imágenes de terceros inicialmente.
@@ -87,5 +90,5 @@ Tras cada fase: pruebas reales, documentación, pendientes, revisión y autoriza
 - Planificación con aleatoriedad y recursos compartidos: invariantes de no doble asignación, escenarios y supuestos visibles.
 - OneDrive: mantener SQLite fuera del árbol sincronizado; vigilar bloqueos de archivos durante compilación.
 - Compatibilidad nativa: resolver paquetes no prueba C++/SQLite; compilar Windows en Fase 1.
-- Escritura GitHub: la sesión actual solo tiene lectura; trabajar localmente y resolver autenticación antes de cualquier push autorizado.
+- Escritura GitHub: inicialmente la CLI solo reportaba lectura; la conexión GitHub verificada posteriormente reportó `pull: true` y `push: true`. Publicar solo cambios autorizados y revisados por fase.
 - Android: múltiples ADB encontrados; revisar PATH al iniciar esa fase. Web queda fuera del alcance.
