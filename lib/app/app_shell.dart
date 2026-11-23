@@ -69,7 +69,7 @@ class AppShell extends ConsumerWidget {
                             ),
                             child: wide
                                 ? const _Brand()
-                                : const Icon(Icons.explore_outlined, size: 32),
+                                : const AppLogo(size: 40),
                           ),
                           Expanded(
                             child: SingleChildScrollView(
@@ -130,16 +130,25 @@ class AppShell extends ConsumerWidget {
   }
 }
 
+/// The app icon (moon, calculator and star).
+class AppLogo extends StatelessWidget {
+  const AppLogo({this.size = 40, super.key});
+  final double size;
+  @override
+  Widget build(BuildContext context) => Image.asset(
+    'assets/branding/logo.png',
+    width: size,
+    height: size,
+    semanticLabel: 'Genshin Progress Planner',
+  );
+}
+
 class _Brand extends StatelessWidget {
   const _Brand();
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      Icon(
-        Icons.explore_outlined,
-        size: 34,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      const AppLogo(size: 40),
       const SizedBox(width: 12),
       Expanded(
         child: Text(
