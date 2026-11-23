@@ -24,3 +24,11 @@ La fuente upstream candidata https://github.com/Dimbreath/AnimeGameData devolvi�
 Por registro: ID estable, idioma, fuente y revisión, versión del juego, fecha de verificación, licencia/procedencia y confiabilidad (`verified`, `pending`, `rejected`). Validar cantidades, referencias, niveles y calendarios. Solo `verified` alimenta cálculos exactos. Excluir contenido no publicado y cualquier personaje/material sin confirmar, incluido cualquier nombre del ejemplo del prompt hasta validarlo.
 
 No se importaron datos de juego en Fase 0. Recompensas, probabilidades, costes de resina y calendarios concretos permanecen pendientes de verificación en sus fases. La app deberá indicar ausencia de datos, no sustituirlos por cifras inventadas.
+
+## Rama `version-en-linea`: catálogo desde genshin-api
+
+- Repositorio: https://github.com/devesh-anand/genshin-api (carpeta `data/`). No tiene archivo LICENSE; su `package.json` declara ISC. Sus datos provienen de yatta.moe, Enka.Network y la wiki de Fandom.
+- El botón **Actualizar desde internet** (pantalla de catálogo) consulta el último commit de la rama `main`, descarga el zip de esa revisión desde `codeload.github.com` (~2 MB), lo convierte con `lib/features/catalog/data/genshin_api_catalog.dart` y lo valida con `CatalogBundle.parse` antes de guardarlo en SQLite. Después todo funciona sin conexión.
+- Versión del catálogo: `genshin-api-<12 primeros caracteres del commit>`; la secuencia es la fecha del commit, de modo que cada actualización posterior se acepta y las anteriores se conservan.
+- Los nombres llegan en inglés. Tipos de arma y categorías de material se traducen al español. Coste de resina de los dominios queda pendiente (la fuente no lo trae).
+- IDs: los del juego (`character:10000073`, `weapon:14511`, `material:101217`), compatibles con el catálogo semilla; los Viajeros comparten ID y reciben sufijo (`character:10000005-aether-anemo`).

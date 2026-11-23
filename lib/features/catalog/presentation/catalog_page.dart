@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/catalog.dart';
 import 'catalog_provider.dart';
+import 'online_update_dialog.dart';
 import '../../progression/presentation/progression_dialog.dart';
 
 String kindLabel(CatalogKind kind) => switch (kind) {
@@ -76,7 +77,9 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Catálogo inicial · Genshin ${bundle.gameVersion} · ${bundle.records.length} registros',
+              bundle.version.startsWith('genshin-api-')
+                  ? 'Catálogo en línea · ${bundle.gameVersion} · ${bundle.records.length} registros'
+                  : 'Catálogo inicial · Genshin ${bundle.gameVersion} · ${bundle.records.length} registros',
             ),
             const SizedBox(height: 12),
             const Text(
@@ -95,6 +98,14 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                       _kind = kind;
                     }),
                   ),
+                FilledButton.icon(
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (_) => const OnlineUpdateDialog(),
+                  ),
+                  icon: const Icon(Icons.cloud_download_outlined),
+                  label: const Text('Actualizar desde internet'),
+                ),
                 OutlinedButton.icon(
                   onPressed: () => showDialog<void>(
                     context: context,
@@ -212,7 +223,7 @@ class _RecordDialog extends StatelessWidget {
                   title: Text(
                     requirement.kind == 'ascension'
                         ? 'Ascensión ${requirement.stage}'
-                        : 'Talento base ${requirement.stage - 1} → ${requirement.stage}',
+                        : '${requirement.talentIndex >= 0 ? '${const ['Ataque normal', 'Habilidad elemental', 'Definitiva'][requirement.talentIndex]} · ' : ''}Talento base ${requirement.stage - 1} → ${requirement.stage}',
                   ),
                   children: [
                     for (final entry in requirement.materials.entries)

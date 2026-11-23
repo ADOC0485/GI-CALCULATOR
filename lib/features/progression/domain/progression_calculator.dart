@@ -74,6 +74,17 @@ class ProgressionResult {
   final Map<String, int> materials, expItems;
 }
 
+/// Total EXP needed to reach each level, indexed by level - 1.
+List<int> _cumulative(CatalogRecord record) {
+  final steps = [...record.progression!.experience]
+    ..sort((a, b) => a.fromLevel.compareTo(b.fromLevel));
+  final totals = [0];
+  for (final step in steps) {
+    totals.add(totals.last + step.experience);
+  }
+  return totals;
+}
+
 ProgressionResult calculateProgression(
   CatalogBundle bundle,
   CatalogRecord record,
@@ -81,9 +92,14 @@ ProgressionResult calculateProgression(
   ProgressionState from,
   ProgressionState to,
 ) {
+  // Catalogs that carry their own EXP table (genshin-api) need no extra rules.
+  final ownTable =
+      record.canUseFields(['requirements', 'experience', 'levelCaps']) &&
+      record.progression!.maxLevel == 90;
   require(
-    ProgressionRules.supported.contains(record.id) &&
-        bundle.gameVersion == rules.data['gameVersion'],
+    ownTable ||
+        (ProgressionRules.supported.contains(record.id) &&
+            bundle.gameVersion == rules.data['gameVersion']),
     'Este perfil o versión todavía no tiene reglas de progresión verificadas.',
   );
   require(
@@ -97,7 +113,7 @@ ProgressionResult calculateProgression(
             [3, 4, 5].contains(record.rarity)),
     'Tipo de progresión no compatible.',
   );
-  final xp = rules.table(record);
+  final xp = ownTable ? _cumulative(record) : rules.table(record);
   void validate(ProgressionState state) {
     require(
       state.ascension >= 0 && state.ascension <= 6,
@@ -163,6 +179,7 @@ ProgressionResult calculateProgression(
       for (final row in rows.where(
         (r) =>
             r.kind == 'talent' &&
+            (r.talentIndex == -1 || r.talentIndex == i) &&
             r.stage > from.talents[i] &&
             r.stage <= to.talents[i],
       )) {
