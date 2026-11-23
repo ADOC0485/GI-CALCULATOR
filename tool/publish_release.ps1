@@ -16,7 +16,9 @@ param(
   [Parameter(Mandatory = $true)][string]$Notas,
   [string]$Repositorio = 'ADOC0485/GI-CALCULATOR'
 )
-$ErrorActionPreference = 'Stop'
+# git, gh and flutter print progress on stderr, which Windows PowerShell
+# treats as an error under 'Stop'; each step checks its exit code instead.
+$ErrorActionPreference = 'Continue'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
 $pubspec = Get-Content pubspec.yaml -Raw
@@ -36,7 +38,8 @@ if (git status --porcelain) {
   throw 'Hay cambios sin commit. Haz commit y push antes de publicar.'
 }
 $rama = git branch --show-current
-git fetch origin $rama 2>$null
+git fetch origin $rama 2>$null | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'No se pudo consultar GitHub (git fetch).' }
 if ((git rev-parse HEAD) -ne (git rev-parse "origin/$rama")) {
   throw "La rama $rama no está subida. Haz git push antes de publicar."
 }
