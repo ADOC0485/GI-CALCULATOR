@@ -29,6 +29,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Amber'), findsOneWidget);
     expect(find.text('Lisa'), findsOneWidget);
+    // Filter by element and weapon when the name is forgotten.
+    await tester.tap(find.widgetWithText(FilterChip, 'Pyro'));
+    await tester.pumpAndSettle();
+    expect(find.text('Amber'), findsOneWidget);
+    expect(find.text('Lisa'), findsNothing);
+    await tester.tap(find.text('Quitar filtros'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Catalizador'));
+    await tester.pumpAndSettle();
+    expect(find.text('Lisa'), findsOneWidget);
+    expect(find.text('Amber'), findsNothing);
+    await tester.tap(find.text('Quitar filtros'));
+    await tester.pumpAndSettle();
+    expect(find.text('Amber'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'amber');
     await tester.pumpAndSettle();
     expect(find.text('Lisa'), findsNothing);

@@ -30,6 +30,42 @@ class CatalogPage extends ConsumerStatefulWidget {
 class _CatalogPageState extends ConsumerState<CatalogPage> {
   late CatalogKind _kind = widget.initialKind;
   String _query = '';
+  // Search filters: null means "any".
+  String? _element, _weapon, _gender;
+
+  bool _matchesFilters(CatalogRecord r) {
+    final p = r.progression;
+    return (_element == null || p?.element == _element) &&
+        (_weapon == null || p?.weaponType == _weapon) &&
+        (_gender == null || p?.gender == _gender);
+  }
+
+  Widget _filterRow(
+    String label,
+    Iterable<String?> values,
+    String? selected,
+    void Function(String?) onSelect,
+  ) {
+    final options = values.whereType<String>().toSet().toList()..sort();
+    if (options.length < 2) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          SizedBox(width: 80, child: Text(label)),
+          for (final option in options)
+            FilterChip(
+              label: Text(option),
+              selected: option == selected,
+              onSelected: (on) => setState(() => onSelect(on ? option : null)),
+            ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final value = ref.watch(catalogProvider);
@@ -63,6 +99,7 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                 .where(
                   (r) =>
                       r.kind == _kind &&
+                      _matchesFilters(r) &&
                       _searchable('${r.name} ${r.id}')
                           .contains(_searchable(_query)),
                 )
@@ -96,6 +133,7 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                     selected: kind == _kind,
                     onSelected: (_) => setState(() {
                       _kind = kind;
+                      _element = _weapon = _gender = null;
                     }),
                   ),
                 FilledButton.icon(
@@ -126,12 +164,53 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
               onChanged: (value) => setState(() => _query = value),
             ),
             const SizedBox(height: 16),
+            if (_kind == CatalogKind.character || _kind == CatalogKind.weapon) ...[
+              Builder(
+                builder: (context) {
+                  final ofKind = bundle.records.where((r) => r.kind == _kind);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_kind == CatalogKind.character)
+                        _filterRow(
+                          'Elemento',
+                          ofKind.map((r) => r.progression?.element),
+                          _element,
+                          (v) => _element = v,
+                        ),
+                      _filterRow(
+                        'Arma',
+                        ofKind.map((r) => r.progression?.weaponType),
+                        _weapon,
+                        (v) => _weapon = v,
+                      ),
+                      if (_kind == CatalogKind.character)
+                        _filterRow(
+                          'Género',
+                          ofKind.map((r) => r.progression?.gender),
+                          _gender,
+                          (v) => _gender = v,
+                        ),
+                      if (_element != null || _weapon != null || _gender != null)
+                        TextButton.icon(
+                          onPressed: () => setState(
+                            () => _element = _weapon = _gender = null,
+                          ),
+                          icon: const Icon(Icons.filter_alt_off_outlined),
+                          label: const Text('Quitar filtros'),
+                        ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
             Text('${records.length} resultados · Versión ${bundle.version}'),
             const SizedBox(height: 12),
             if (records.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(24),
-                child: Text('No hay coincidencias. Prueba con otro nombre.'),
+                child: Text('No hay coincidencias. Prueba con otro nombre o quita algún filtro.'),
               ),
             for (final record in records)
               Padding(
@@ -160,6 +239,8 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                           record.progression!.element!,
                         if (record.progression?.weaponType != null)
                           record.progression!.weaponType,
+                        if (record.progression?.gender != null)
+                          record.progression!.gender!,
                         if (record.material != null) record.material!.category,
                         record.provenance.reliability == Reliability.verified
                             ? (record.pendingFields.isEmpty

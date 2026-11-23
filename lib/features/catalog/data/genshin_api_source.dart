@@ -98,6 +98,7 @@ class GenshinApiSource {
   Future<CatalogBundle> download(
     UpstreamRevision revision, {
     Map<String, String> spanishNames = const {},
+    Map<String, String> genders = const {},
   }) async {
     final bytes = await _get(
       Uri.https(
@@ -105,7 +106,12 @@ class GenshinApiSource {
         '/$genshinApiRepository/zip/${revision.sha}',
       ),
     );
-    return catalogFromArchive(bytes, revision, spanishNames: spanishNames);
+    return catalogFromArchive(
+      bytes,
+      revision,
+      spanishNames: spanishNames,
+      genders: genders,
+    );
   }
 }
 
@@ -114,6 +120,7 @@ CatalogBundle catalogFromArchive(
   List<int> bytes,
   UpstreamRevision revision, {
   Map<String, String> spanishNames = const {},
+  Map<String, String> genders = const {},
 }) {
   final Archive archive;
   try {
@@ -138,5 +145,6 @@ CatalogBundle catalogFromArchive(
     revision: revision.sha,
     committedAt: revision.committedAt,
     spanishNames: spanishNames,
+    genders: genders,
   );
 }

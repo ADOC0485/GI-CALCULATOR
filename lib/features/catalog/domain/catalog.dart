@@ -158,6 +158,7 @@ class ProgressionData {
     this.requirements,
     this.experience,
     this.calculationProfile,
+    this.gender,
   );
   final String weaponType;
   final String? element, region;
@@ -165,6 +166,9 @@ class ProgressionData {
   final List<Requirement> requirements;
   final List<ExperienceStep> experience;
   final String? calculationProfile;
+
+  /// 'Masculino' or 'Femenino' for characters when the source knows it.
+  final String? gender;
 }
 
 /// Alchemy recipe: [quantity] of [fromId] plus [mora] make one of this item.
@@ -338,6 +342,9 @@ class CatalogRecord {
         List.unmodifiable(requirements),
         List.unmodifiable(experience),
         json['calculationProfile'] == null ? null : _string(json['calculationProfile'], id),
+        kind == CatalogKind.character && json['gender'] != null
+            ? _string(json['gender'], '$id.gender')
+            : null,
       );
     } else if (kind == CatalogKind.material) {
       final craft = json['craft'] == null

@@ -13,21 +13,19 @@ void main() {
     '.catalog-cache/genshin-api-62af3592e7ef4498d90e68e7967096c5aabc8f33.zip',
   );
   final skip = zip.existsSync() ? false : 'sin caché local de genshin-api';
+  final spanish =
+      jsonDecode(File('assets/catalog/nombres-es.json').readAsStringSync())
+          as Map<String, dynamic>;
+  Map<String, String> part(String key) =>
+      (spanish[key] as Map<String, dynamic>).cast<String, String>();
   late final CatalogBundle bundle = catalogFromArchive(
     zip.readAsBytesSync(),
     UpstreamRevision(
       '62af3592e7ef4498d90e68e7967096c5aabc8f33',
       DateTime.utc(2026, 11, 15, 18, 40),
     ),
-    spanishNames:
-        ((jsonDecode(
-                      File(
-                        'assets/catalog/nombres-es.json',
-                      ).readAsStringSync(),
-                    )
-                    as Map<String, dynamic>)['names']
-                as Map<String, dynamic>)
-            .cast<String, String>(),
+    spanishNames: part('names'),
+    genders: part('genders'),
   );
   final rules = ProgressionRules(
     File('assets/rules/progression-v1.json').readAsStringSync(),
@@ -59,7 +57,17 @@ void main() {
     );
     expect(nameOf('material:101217'), 'Loto kalpa');
     expect(nameOf('material:104003'), 'Ingenio del héroe');
-    expect(bundle.records.any((r) => r.name == 'Mavuika'), isTrue);
+    expect(named('Mavuika').progression!.gender, 'Femenino');
+    expect(named('Mavuika').progression!.element, 'Pyro');
+    expect(named('Mavuika').progression!.weaponType, 'Mandoble');
+    final characters = bundle.records.where(
+      (r) => r.kind == CatalogKind.character,
+    );
+    expect(characters.every((r) => r.progression!.gender != null), isTrue);
+    expect(
+      {for (final r in characters) r.progression!.element},
+      containsAll(['Anemo', 'Cryo', 'Dendro', 'Electro', 'Geo', 'Hydro', 'Pyro']),
+    );
   }, skip: skip);
 
   test('Mavuika 50/50 → 90 with two crowned talents', () {

@@ -9,7 +9,7 @@ const genshinApiRepository = 'devesh-anand/genshin-api';
 const moraId = 'material:202';
 
 /// Bumped whenever the conversion output changes for the same upstream commit.
-const converterRevision = 3;
+const converterRevision = 4;
 
 String genshinApiVersion(String revision) =>
     'genshin-api-${revision.substring(0, 12)}-c$converterRevision';
@@ -90,6 +90,7 @@ CatalogBundle buildGenshinApiCatalog({
   required String revision,
   required DateTime committedAt,
   Map<String, String> spanishNames = const {},
+  Map<String, String> genders = const {},
 }) {
   if (!RegExp(r'^[0-9a-f]{40}$').hasMatch(revision)) {
     throw const GenshinApiFormatException('revisión de commit inválida');
@@ -348,6 +349,7 @@ CatalogBundle buildGenshinApiCatalog({
       'rarity': json['rarity'],
       'element': vision is String && vision.isNotEmpty ? vision : 'Ninguno',
       'region': nation is String && nation.isNotEmpty ? nation : null,
+      if (genders[gameId] != null) 'gender': genders[gameId],
       'weaponType': _weaponTypes[json['weapon']] ?? json['weapon'],
       'maxLevel': characterMaxLevel,
       'requirements': requirements,

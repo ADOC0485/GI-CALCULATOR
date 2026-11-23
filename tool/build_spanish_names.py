@@ -30,11 +30,14 @@ def main():
                 yield name[len(start):], json.loads(archive.read(name))
 
     names = {}
+    genders = {}
     for category, kind in [('materials', 'material'), ('characters', 'character'),
                            ('weapons', 'weapon')]:
         for _, data in folder('Spanish', category):
             if isinstance(data.get('id'), int) and data.get('name'):
                 names[f'{kind}:{data["id"]}'] = data['name']
+                if kind == 'character' and data.get('gender') in ('Masculino', 'Femenino'):
+                    genders[f'character:{data["id"]}'] = data['gender']
     english = {file: data for file, data in folder('English', 'domains')}
     for file, data in folder('Spanish', 'domains'):
         source = english.get(file)
@@ -44,9 +47,10 @@ def main():
         'source': f'https://github.com/theBowja/genshin-db/tree/{DB_REV}',
         'license': 'MIT (genshin-db, copyright theBowja)',
         'names': dict(sorted(names.items())),
+        'genders': dict(sorted(genders.items())),
     }
     OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, indent=0), encoding='utf-8')
-    print(f'{len(names)} nombres -> {OUTPUT}')
+    print(f'{len(names)} nombres, {len(genders)} géneros -> {OUTPUT}')
 
 
 if __name__ == '__main__':
