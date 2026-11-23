@@ -111,7 +111,7 @@ void main() {
 
   test('Converts records with stable IDs and domain schedules', () {
     final ids = bundle.records.map((r) => r.id).toSet();
-    expect(bundle.version, 'genshin-api-0123456789ab-c2');
+    expect(bundle.version, 'genshin-api-0123456789ab-c3');
     expect(ids, contains('character:10000099'));
     expect(ids, contains('character:10000005-traveler-a'));
     expect(ids, contains('character:10000005-traveler-b'));

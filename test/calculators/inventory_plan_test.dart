@@ -36,7 +36,27 @@ void main() {
       bundle.records.firstWhere((r) => r.name == name);
   String nameOf(String id) => bundle.records.firstWhere((r) => r.id == id).name;
 
-  test('Names arrive in Spanish', () {
+  test('World Level sets ley line yield and must match the AR', () {
+    expect(LeyLineRates.forWorldLevel(0).mora, 12000);
+    expect(LeyLineRates.forWorldLevel(5).experience, 102500);
+    expect(LeyLineRates.forWorldLevel(8).mora, 60000);
+    expect(() => LeyLineRates.forWorldLevel(10), throwsA(isA<CalculationException>()));
+    expect(LeyLineRates.highestFor(35), 4);
+    expect(LeyLineRates.highestFor(60), 9);
+    expect(
+      () => LeyLineRates.checkAccount(9, 35),
+      throwsA(isA<CalculationException>()),
+    );
+    expect(LeyLineRates.checkAccount(8, 57), isNull);
+    expect(LeyLineRates.checkAccount(7, 57), isNull); // lowered by one
+    expect(LeyLineRates.checkAccount(4, 57), isNotNull);
+  });
+
+  test('Names and pictures arrive with the catalog', () {
+    expect(
+      bundle.records.firstWhere((r) => r.id == 'material:104003').image,
+      'https://gi.deve.sh/materials/heros-wit/icon.png',
+    );
     expect(nameOf('material:101217'), 'Loto kalpa');
     expect(nameOf('material:104003'), 'Ingenio del héroe');
     expect(bundle.records.any((r) => r.name == 'Mavuika'), isTrue);
@@ -70,7 +90,13 @@ void main() {
       ownedMaterials: const {},
     );
     expect(empty.expMissing, result.experience);
-    expect(empty.expRuns, (result.experience + 119999) ~/ 120000);
+    expect(empty.expRuns, (result.experience + 122499) ~/ 122500);
+    // Mora is split by purpose and adds up to the total.
+    expect(
+      result.levelingMora + result.ascensionMora + result.talentMora,
+      result.materials['material:202'],
+    );
+    expect(result.talentMora, 2 * (12500 + 17500 + 25000 + 30000 + 37500 + 120000 + 260000 + 450000 + 700000));
     expect(empty.levelWithOwned, 50);
 
     final rich = planInventory(

@@ -2,29 +2,83 @@ import '../../catalog/domain/catalog.dart';
 import 'progression_calculator.dart';
 
 class ExpItem {
-  const ExpItem(this.label, this.experience);
+  const ExpItem(this.label, this.experience, this.id);
   final String label;
   final int experience;
+
+  /// Catalog ID, used to show the item's picture.
+  final String id;
 }
 
 const characterExpItems = [
-  ExpItem('Ingenio del héroe', 20000),
-  ExpItem('Experiencia del aventurero', 5000),
-  ExpItem('Consejo del errante', 1000),
+  ExpItem('Ingenio del héroe', 20000, 'material:104003'),
+  ExpItem('Experiencia del aventurero', 5000, 'material:104002'),
+  ExpItem('Consejo del errante', 1000, 'material:104001'),
 ];
 const weaponExpItems = [
-  ExpItem('Mineral de refinamiento místico', 10000),
-  ExpItem('Mineral de refinamiento fino', 2000),
-  ExpItem('Mineral de refinamiento', 400),
+  ExpItem('Mineral de refinamiento místico', 10000, 'material:104013'),
+  ExpItem('Mineral de refinamiento fino', 2000, 'material:104012'),
+  ExpItem('Mineral de refinamiento', 400, 'material:104011'),
 ];
 
-/// Average ley line yield per 20 Original Resin; the user can adjust both.
-/// Default EXP: 420 resin give 126 Hero's Wit at World Level 6–8, so
-/// 6 Hero's Wit (120 000 EXP) per claim.
+/// Average ley line yield per 20 Original Resin claim.
+///
+/// Community tables (gamertagmythras.com world level guide and
+/// genshin-guide-one-five.vercel.app ley line guide, November 2026) agree on
+/// these averages; they are estimates, not official figures.
 class LeyLineRates {
-  const LeyLineRates({this.experience = 120000, this.mora = 60000});
+  const LeyLineRates({this.experience = 122500, this.mora = 60000});
   final int experience, mora;
   static const resinPerRun = 20;
+  static const _experience = [
+    25000, 38500, 52500, 67500, 82500, 102500, 122500, 122500, 122500, 122500,
+  ];
+  static const _mora = [
+    12000, 20000, 28000, 36000, 44000, 52000, 60000, 60000, 60000, 60000,
+  ];
+
+  /// Adventure Rank that unlocks each World Level (index = World Level).
+  static const unlockRank = [1, 20, 25, 30, 35, 40, 45, 50, 55, 58];
+  static const maxWorldLevel = 9;
+
+  factory LeyLineRates.forWorldLevel(int worldLevel) {
+    require(
+      worldLevel >= 0 && worldLevel <= maxWorldLevel,
+      'El nivel de mundo va de 0 a $maxWorldLevel.',
+    );
+    return LeyLineRates(
+      experience: _experience[worldLevel],
+      mora: _mora[worldLevel],
+    );
+  }
+
+  /// Highest World Level an Adventure Rank can have unlocked.
+  static int highestFor(int adventureRank) {
+    var level = 0;
+    for (var w = 0; w <= maxWorldLevel; w++) {
+      if (adventureRank >= unlockRank[w]) level = w;
+    }
+    return level;
+  }
+
+  /// Checks a World Level against the Adventure Rank. Throws when it is
+  /// impossible; returns a hint when it is possible but unusual.
+  static String? checkAccount(int worldLevel, int adventureRank) {
+    require(
+      adventureRank >= 1 && adventureRank <= 60,
+      'El rango de aventura (AR) va de 1 a 60.',
+    );
+    final highest = highestFor(adventureRank);
+    require(
+      worldLevel <= highest,
+      'Con AR $adventureRank el nivel de mundo máximo es $highest. Revisa ambos datos.',
+    );
+    if (worldLevel < highest - 1) {
+      return 'Con AR $adventureRank lo normal es nivel de mundo $highest '
+          '(o ${highest - 1} si lo bajaste o te falta la misión de ascenso).';
+    }
+    return null;
+  }
 }
 
 class MaterialLine {

@@ -9,7 +9,7 @@ const genshinApiRepository = 'devesh-anand/genshin-api';
 const moraId = 'material:202';
 
 /// Bumped whenever the conversion output changes for the same upstream commit.
-const converterRevision = 2;
+const converterRevision = 3;
 
 String genshinApiVersion(String revision) =>
     'genshin-api-${revision.substring(0, 12)}-c$converterRevision';
@@ -70,6 +70,12 @@ String _slugify(String text) => text
     .toLowerCase()
     .replaceAll(RegExp('[^a-z0-9]+'), '-')
     .replaceAll(RegExp(r'^-+|-+$'), '');
+
+/// `img` is a URL for materials and a map of URLs for characters/weapons.
+String? _icon(Object? img) {
+  final url = img is Map ? img['icon'] : img;
+  return url is String && url.startsWith('https://') ? url : null;
+}
 
 String _date(DateTime value) =>
     value.toUtc().toIso8601String().substring(0, 10);
@@ -226,6 +232,7 @@ CatalogBundle buildGenshinApiCatalog({
       'id': id,
       'kind': 'material',
       'name': spanishNames[id] ?? json['name'],
+      if (_icon(json['img']) != null) 'image': _icon(json['img']),
       if (json['exp'] is int) 'experience': json['exp'],
       'rarity': validRarity ? rarity : null,
       'category':
@@ -334,6 +341,7 @@ CatalogBundle buildGenshinApiCatalog({
     characters.add({
       'id': id,
       'kind': 'character',
+      if (_icon(json['img']) != null) 'image': _icon(json['img']),
       'name': id == gameId || vision is! String
           ? baseName
           : '$baseName ($vision)',
@@ -366,6 +374,7 @@ CatalogBundle buildGenshinApiCatalog({
     weapons.add({
       'id': 'weapon:${json['id']}',
       'kind': 'weapon',
+      if (_icon(json['img']) != null) 'image': _icon(json['img']),
       'name': spanishNames['weapon:${json['id']}'] ?? json['name'],
       'rarity': rarity,
       'weaponType': _weaponTypes[json['type']] ?? json['type'],

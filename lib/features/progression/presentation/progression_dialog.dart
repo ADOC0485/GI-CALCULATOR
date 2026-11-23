@@ -60,10 +60,8 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
   final books = List.generate(3, (_) => TextEditingController());
   final moraOwned = TextEditingController();
   final owned = <String, TextEditingController>{};
-  final expRate = TextEditingController(
-    text: '${const LeyLineRates().experience}',
-  );
-  final moraRate = TextEditingController(text: '${const LeyLineRates().mora}');
+  final worldLevel = TextEditingController(text: '8');
+  final adventureRank = TextEditingController();
 
   static const inventoryKey = 'inventario';
 
@@ -99,8 +97,8 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
     },
     _booksKey: [for (final b in books) b.text.trim()],
     'mora': moraOwned.text.trim(),
-    'expRate': expRate.text.trim(),
-    'moraRate': moraRate.text.trim(),
+    'worldLevel': worldLevel.text.trim(),
+    'adventureRank': adventureRank.text.trim(),
   };
 
   void _restoreInventory(Map<String, dynamic> values) {
@@ -118,8 +116,8 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
     }
     for (final (key, controller) in [
       ('mora', moraOwned),
-      ('expRate', expRate),
-      ('moraRate', moraRate),
+      ('worldLevel', worldLevel),
+      ('adventureRank', adventureRank),
     ]) {
       final v = values[key];
       if (v is String && v.isNotEmpty) controller.text = v;
@@ -134,7 +132,13 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
   void dispose() {
     now.dispose();
     goal.dispose();
-    for (final c in [...books, moraOwned, expRate, moraRate, ...owned.values]) {
+    for (final c in [
+      ...books,
+      moraOwned,
+      worldLevel,
+      adventureRank,
+      ...owned.values,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -428,33 +432,67 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
         ),
       );
 
+  Widget _icon(String? url, {double size = 36}) => SizedBox(
+    width: size,
+    height: size,
+    child: url == null
+        ? Icon(Icons.inventory_2_outlined, size: size * 0.7)
+        : Image.network(
+            url,
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+            errorBuilder: (_, _, _) =>
+                Icon(Icons.inventory_2_outlined, size: size * 0.7),
+          ),
+  );
+
   Widget _results(BuildContext context, ProgressionResult result) {
     final theme = Theme.of(context);
-    final names = {for (final r in widget.bundle.records) r.id: r.name};
+    final records = {for (final r in widget.bundle.records) r.id: r};
     final items = isCharacter ? characterExpItems : weaponExpItems;
-    InventoryPlan? plan;
-    String? planError;
-    try {
-      plan = planInventory(
-        bundle: widget.bundle,
-        record: widget.record,
-        result: result,
-        ownedBooks: [for (final b in books) _count(b)],
-        ownedMaterials: {
-          for (final id in result.materials.keys) id: _count(_owned(id)),
-        },
-        ownedMora: _count(moraOwned),
-        rates: LeyLineRates(
-          experience: _count(expRate),
-          mora: _count(moraRate),
-        ),
-      );
-    } on CalculationException catch (e) {
-      planError = e.message;
-    }
     final good = TextStyle(color: theme.colorScheme.primary);
     final bad = TextStyle(color: theme.colorScheme.error);
-    final resin = LeyLineRates.resinPerRun;
+    const resin = LeyLineRates.resinPerRun;
+
+    LeyLineRates? rates;
+    String? accountError, accountHint;
+    try {
+      final world = whole(worldLevel.text, 'Nivel de mundo');
+      rates = LeyLineRates.forWorldLevel(world);
+      if (adventureRank.text.trim().isNotEmpty) {
+        accountHint = LeyLineRates.checkAccount(
+          world,
+          whole(adventureRank.text, 'Rango de aventura'),
+        );
+      }
+    } on CalculationException catch (e) {
+      accountError = e.message;
+    }
+
+    final plan = planInventory(
+      bundle: widget.bundle,
+      record: widget.record,
+      result: result,
+      ownedBooks: [for (final b in books) _count(b)],
+      ownedMaterials: {
+        for (final id in result.materials.keys) id: _count(_owned(id)),
+      },
+      ownedMora: _count(moraOwned),
+      rates: rates ?? const LeyLineRates(),
+    );
+    final runsKnown = rates != null && accountError == null;
+
+    Widget moraRow(String label, int amount, {TextStyle? style}) => Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: style)),
+          Text(_n(amount), style: style),
+        ],
+      ),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -463,6 +501,36 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
             padding: EdgeInsets.only(bottom: 8),
             child: Text('Tu progreso ya coincide con el objetivo.'),
           ),
+        _section(context, 'Tu cuenta', [
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _numberField(
+                worldLevel,
+                'Nivel de mundo (0–9)',
+                width: 190,
+                key: const ValueKey('world-level'),
+              ),
+              _numberField(
+                adventureRank,
+                'Rango de aventura (AR)',
+                width: 190,
+                key: const ValueKey('adventure-rank'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (accountError != null)
+            Text(accountError, style: bad)
+          else if (rates != null) ...[
+            Text(
+              'En tu nivel de mundo, cada línea ley ($resin de resina) da en '
+              'promedio ≈ ${_n(rates.experience)} de EXP o ${_n(rates.mora)} de Mora.',
+            ),
+            if (accountHint != null) Text(accountHint),
+          ],
+        ]),
         _section(
           context,
           isCharacter ? 'Nivel · libros de EXP' : 'Nivel · minerales de mejora',
@@ -479,39 +547,59 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
             ),
             const SizedBox(height: 12),
             Wrap(
-              spacing: 12,
+              spacing: 16,
               runSpacing: 12,
               children: [
                 for (var i = 0; i < items.length; i++)
-                  _numberField(
-                    books[i],
-                    items[i].label,
-                    width: 230,
-                    key: ValueKey('book-$i'),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _icon(records[items[i].id]?.image),
+                      const SizedBox(width: 8),
+                      _numberField(
+                        books[i],
+                        items[i].label,
+                        width: 230,
+                        key: ValueKey('book-$i'),
+                      ),
+                    ],
                   ),
               ],
             ),
             const SizedBox(height: 12),
-            if (plan != null) ...[
-              Text(
-                'Con lo que tienes: ${_n(plan.expOwned)} de EXP · llegas a nivel ${plan.levelWithOwned}',
-              ),
-              if (plan.expMissing == 0)
-                Text('¡Te alcanza para todo el nivel!', style: good)
-              else ...[
-                Text('Te faltan ${_n(plan.expMissing)} de EXP:', style: bad),
-                for (final e in plan.booksToFarm.entries)
-                  Text('• ${e.key}: ${_n(e.value)}'),
-                if (isCharacter)
-                  Text(
-                    '≈ ${plan.expRuns} líneas ley de EXP (${plan.expRuns * resin} de resina)',
-                    style: theme.textTheme.titleSmall,
-                  ),
-              ],
+            Text(
+              'Con lo que tienes: ${_n(plan.expOwned)} de EXP · llegas a nivel ${plan.levelWithOwned}',
+            ),
+            if (plan.expMissing == 0)
+              Text('¡Te alcanza para todo el nivel!', style: good)
+            else ...[
+              Text('Te faltan ${_n(plan.expMissing)} de EXP:', style: bad),
+              for (final e in plan.booksToFarm.entries)
+                Text('• ${e.key}: ${_n(e.value)}'),
+              if (isCharacter && runsKnown)
+                Text(
+                  '≈ ${plan.expRuns} líneas ley de EXP (${_n(plan.expRuns * resin)} de resina)',
+                  style: theme.textTheme.titleSmall,
+                ),
             ],
           ],
         ),
         _section(context, 'Mora', [
+          moraRow(
+            'Subir hasta nivel ${result.toLevel} (niveles + ascensiones)',
+            result.levelingMora + result.ascensionMora,
+          ),
+          if (talentsOn && isCharacter)
+            moraRow('Subir talentos', result.talentMora),
+          if (plan.craftingMora > 0)
+            moraRow('Convertir materiales (3 → 1)', plan.craftingMora),
+          const Divider(),
+          moraRow(
+            'Total necesario',
+            plan.moraTotal,
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
           _numberField(
             moraOwned,
             'Mora que tienes',
@@ -519,18 +607,14 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
             key: const ValueKey('mora-owned'),
           ),
           const SizedBox(height: 12),
-          if (plan != null) ...[
-            Text(
-              'Necesitas ${_n(plan.moraTotal)}: subir nivel ${_n(result.levelingMora)}'
-              ', ascensiones${talentsOn && isCharacter ? ' y talentos' : ''}'
-              '${plan.craftingMora > 0 ? ', más ${_n(plan.craftingMora)} para convertir materiales' : ''}.',
-            ),
-            if (plan.moraMissing == 0)
-              Text('¡Te alcanza la Mora!', style: good)
-            else
+          if (plan.moraMissing == 0)
+            Text('¡Te alcanza la Mora!', style: good)
+          else ...[
+            Text('Te faltan ${_n(plan.moraMissing)} de Mora', style: bad),
+            if (runsKnown)
               Text(
-                'Te faltan ${_n(plan.moraMissing)} · ≈ ${plan.moraRuns} líneas ley de Mora (${plan.moraRuns * resin} de resina)',
-                style: bad,
+                '≈ ${plan.moraRuns} líneas ley de Mora (${_n(plan.moraRuns * resin)} de resina)',
+                style: theme.textTheme.titleSmall,
               ),
           ],
         ]),
@@ -540,67 +624,62 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
             'se usan convirtiendo 3 en 1, como en la alquimia.',
           ),
           const SizedBox(height: 12),
-          if (plan != null)
-            for (final line in plan.lines)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 12,
-                  runSpacing: 6,
-                  children: [
-                    SizedBox(width: 230, child: Text(names[line.id] ?? line.id)),
-                    SizedBox(
-                      width: 110,
-                      child: Text('Necesitas ${_n(line.needed)}'),
-                    ),
-                    _numberField(
-                      _owned(line.id),
-                      'Tienes',
-                      width: 100,
-                      key: ValueKey('owned-${line.id}'),
-                    ),
-                    if (line.missing == 0)
-                      Text(
-                        line.crafted > 0
-                            ? 'Listo (${line.crafted} convirtiendo)'
-                            : 'Listo',
-                        style: good,
-                      )
-                    else
-                      Text(
-                        'Faltan ${_n(line.missing)}'
-                        '${line.crafted > 0 ? ' (ya cuenta ${line.crafted} convirtiendo)' : ''}',
-                        style: bad,
+          for (final line in plan.lines)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 6,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _icon(records[line.id]?.image),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 200,
+                        child: Text(records[line.id]?.name ?? line.id),
                       ),
-                  ],
-                ),
+                    ],
+                  ),
+                  SizedBox(
+                    width: 110,
+                    child: Text('Necesitas ${_n(line.needed)}'),
+                  ),
+                  _numberField(
+                    _owned(line.id),
+                    'Tienes',
+                    width: 100,
+                    key: ValueKey('owned-${line.id}'),
+                  ),
+                  if (line.missing == 0)
+                    Text(
+                      line.crafted > 0
+                          ? 'Listo (${line.crafted} convirtiendo)'
+                          : 'Listo',
+                      style: good,
+                    )
+                  else
+                    Text(
+                      'Faltan ${_n(line.missing)}'
+                      '${line.crafted > 0 ? ' (ya cuenta ${line.crafted} convirtiendo)' : ''}',
+                      style: bad,
+                    ),
+                ],
               ),
+            ),
         ]),
-        ExpansionTile(
-          tilePadding: EdgeInsets.zero,
-          title: const Text('Ajustar líneas ley a tu nivel de mundo'),
-          children: [
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Promedio por cada 20 de resina. Por defecto: nivel de mundo 6–8 '
-                '(≈ 6 Ingenios del héroe = 120 000 de EXP). Cámbialo si tu mundo es menor.',
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _numberField(expRate, 'EXP por línea ley', width: 200),
-                _numberField(moraRate, 'Mora por línea ley', width: 200),
-              ],
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-        if (planError != null) Text(planError, style: bad),
+        _section(context, 'Consejos', [
+          const Text(
+            '• Tetera de la Serenidad: en la Tienda del reino puedes cambiar '
+            'moneda del reino por Ingenio del héroe, Mineral de refinamiento '
+            'místico y Resina transitoria (60 de resina). Revísala cada semana.',
+          ),
+          const Text(
+            '• Las líneas ley son un promedio: el reparto exacto de libros varía en cada recompensa.',
+          ),
+        ]),
         const SizedBox(height: 8),
         Text(
           'Catálogo ${widget.bundle.version}. Fuentes comunitarias; las líneas ley son un promedio aproximado.',

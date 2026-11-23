@@ -213,8 +213,12 @@ class CatalogRecord {
     this.progression,
     this.material,
     this.activity,
+    this.image,
   );
   final String id, name;
+
+  /// HTTPS icon shown next to the name; optional.
+  final String? image;
   final CatalogKind kind;
   final int? rarity;
   final Provenance provenance;
@@ -411,6 +415,7 @@ class CatalogRecord {
       progression,
       material,
       activity,
+      json['image'] == null ? null : _url(json['image'], '$id.image'),
     );
   }
 }

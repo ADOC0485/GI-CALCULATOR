@@ -142,6 +142,16 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                       horizontal: 20,
                       vertical: 8,
                     ),
+                    leading: record.image == null
+                        ? null
+                        : Image.network(
+                            record.image!,
+                            width: 40,
+                            height: 40,
+                            errorBuilder: (_, _, _) => const Icon(
+                              Icons.image_not_supported_outlined,
+                            ),
+                          ),
                     title: Text(record.name),
                     subtitle: Text(
                       [

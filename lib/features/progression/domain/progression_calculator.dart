@@ -73,9 +73,14 @@ class ProgressionResult {
     this.fromLevel = 1,
     this.toLevel = 1,
     int startExperience = 0,
+    this.ascensionMora = 0,
+    this.talentMora = 0,
   }) : _xp = xpTable,
        _start = startExperience;
   final int experience, levelingMora, surplus, fromLevel, toLevel;
+
+  /// Mora spent on ascensions and on talents, already inside [materials].
+  final int ascensionMora, talentMora;
   final Map<String, int> materials, expItems;
   final List<int> _xp;
   final int _start;
@@ -170,7 +175,14 @@ ProgressionResult calculateProgression(
       xp[to.level - 1] + to.experience - xp[from.level - 1] - from.experience;
   require(needed >= 0, 'La EXP objetivo es inferior a la actual.');
   final materials = <String, int>{};
+  var ascensionMora = 0, talentMora = 0;
   void add(Requirement row) {
+    final mora = row.materials['material:202'] ?? 0;
+    if (row.kind == 'talent') {
+      talentMora += mora;
+    } else {
+      ascensionMora += mora;
+    }
     row.materials.forEach(
       (id, amount) =>
           materials.update(id, (old) => old + amount, ifAbsent: () => amount),
@@ -253,6 +265,8 @@ ProgressionResult calculateProgression(
     xpTable: xp,
     fromLevel: from.level,
     toLevel: to.level,
+    ascensionMora: ascensionMora,
+    talentMora: talentMora,
     startExperience: xp[from.level - 1] + from.experience,
   );
 }
