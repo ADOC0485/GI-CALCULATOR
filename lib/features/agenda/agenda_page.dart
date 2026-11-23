@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/presentation/page_frame.dart';
 import '../builds/data/build_repository.dart';
+import '../profiles/profile.dart';
 import '../builds/domain/build.dart';
 import '../builds/domain/resin_planner.dart';
 import '../builds/presentation/build_page.dart';
@@ -112,7 +113,11 @@ class AgendaPage extends ConsumerStatefulWidget {
 }
 
 class _AgendaPageState extends ConsumerState<AgendaPage> {
-  final today = DateTime.now();
+  /// Game day of the profile's server (it changes at 04:00 there).
+  late final DateTime today = gameDay(
+    DateTime.now(),
+    ref.read(activeServerProvider),
+  );
   final done = <String, Set<String>>{};
 
   String _key(DateTime d) => 'agenda-${dayKey(d)}';
@@ -162,7 +167,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
               builds: builds,
               inventory: inventory,
               start: today,
-              startResin: resin?.normalAt(today) ?? 180,
+              startResin: resin?.normalAt(DateTime.now()) ?? 180,
               startCondensed: resin?.condensed ?? 0,
             );
     } on CalculationException catch (e) {
@@ -211,7 +216,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                       Text(
                   resin == null
                       ? 'Resina: cargando…'
-                      : 'Resina para hoy: ${resin.normalAt(today)}'
+                      : 'Resina para hoy: ${resin.normalAt(DateTime.now())}'
                             '${resin.condensed > 0 ? ' + ${resin.condensed} concentrada' : ''}',
                 ),
                 TextButton.icon(

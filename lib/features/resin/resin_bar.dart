@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../profiles/profile.dart';
 import '../profiles/profiles_card.dart';
 import 'resin_state.dart';
 
@@ -90,6 +91,24 @@ class _ResinBarState extends ConsumerState<ResinBar> {
                         : '+1 en ${_clock(next)} · llena en ${_clock(full!)}',
                     key: const ValueKey('resin-timer'),
                     style: theme.textTheme.bodySmall,
+                  ),
+                  Builder(
+                    builder: (context) {
+                      final server = ref.watch(activeServerProvider);
+                      final daily = untilDailyReset(now, server);
+                      final weekly = untilWeeklyReset(now, server);
+                      return Tooltip(
+                        message:
+                            'Reinicio a las 4:00 hora del servidor ($server). '
+                            'El semanal es el lunes a esa hora.',
+                        child: Text(
+                          'Reinicio en ${_clock(daily)}'
+                          '${weekly.inDays >= 1 ? ' · semanal en ${weekly.inDays} d' : ''}',
+                          key: const ValueKey('reset-timer'),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      );
+                    },
                   ),
                   if (resin.condensed > 0)
                     pill(

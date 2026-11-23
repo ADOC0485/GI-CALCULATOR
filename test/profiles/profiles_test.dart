@@ -30,6 +30,25 @@ void main() {
     characterGoal: const ProgressionState(level: 90, ascension: 6),
   );
 
+  test('The game day changes at 04:00 server time', () {
+    // 2026-11-24 08:30 UTC = 03:30 in America (UTC-5): still Monday there.
+    final t = DateTime.utc(2026, 11, 24, 8, 30);
+    expect(gameDay(t, 'América'), DateTime(2026, 11, 23));
+    expect(untilDailyReset(t, 'América'), const Duration(minutes: 30));
+    // Same moment is 16:30 in Asia (UTC+8): already Tuesday, reset tomorrow.
+    expect(gameDay(t, 'Asia'), DateTime(2026, 11, 24));
+    expect(untilDailyReset(t, 'Asia'), const Duration(hours: 11, minutes: 30));
+    // Europe (UTC+1): 09:30 on Tuesday.
+    expect(gameDay(t, 'Europa'), DateTime(2026, 11, 24));
+    // Weekly reset: America is still on Monday's game day, so the next one is
+    // 30 minutes + 6 days away; Asia is on Tuesday, so 11:30 + 5 days.
+    expect(untilWeeklyReset(t, 'América'), const Duration(days: 6, minutes: 30));
+    expect(untilWeeklyReset(t, 'Asia'), const Duration(days: 5, hours: 11, minutes: 30));
+    // Sunday evening in Asia: the weekly reset is the next daily one.
+    final sunday = DateTime.utc(2026, 11, 29, 12); // 20:00 Sunday in Asia
+    expect(untilWeeklyReset(sunday, 'Asia'), untilDailyReset(sunday, 'Asia'));
+  });
+
   test('Greeting follows the chosen gender', () {
     expect(const Profile(id: 'a', name: 'Ana', gender: 'Femenino').greeting,
         '¡Bienvenida, Ana!');

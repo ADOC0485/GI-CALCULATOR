@@ -17,6 +17,7 @@ class AppShell extends ConsumerWidget {
     // Loads the profiles; switching one rebuilds the pages with its data.
     ref.watch(profilesProvider);
     final profileId = ref.watch(activeProfileIdProvider);
+    final server = ref.watch(activeServerProvider);
     final selected = AppSection.values.indexWhere((s) => s.path == location);
     final index = selected < 0 ? 0 : selected;
     return LayoutBuilder(
@@ -113,7 +114,7 @@ class AppShell extends ConsumerWidget {
                 ],
                 Expanded(
                   child: Column(
-                    key: ValueKey('profile-$profileId'),
+                    key: ValueKey('profile-$profileId-$server'),
                     children: [
                       const ResinBar(),
                       Expanded(child: child),

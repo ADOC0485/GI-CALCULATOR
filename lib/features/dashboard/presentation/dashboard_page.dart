@@ -32,7 +32,9 @@ class DashboardPage extends ConsumerWidget {
     final inventory = ref.watch(inventoryProvider).asData?.value;
     final resin = ref.watch(resinProvider).asData?.value;
     final profile = ref.watch(profilesProvider).asData?.value.active;
-    final today = DateTime.now();
+    final now = DateTime.now();
+    // Game day of the profile's server (it changes at 04:00 there).
+    final today = gameDay(now, ref.watch(activeServerProvider));
     AgendaPlan? plan;
     if (bundle != null &&
         rules != null &&
@@ -46,7 +48,7 @@ class DashboardPage extends ConsumerWidget {
           builds: builds,
           inventory: inventory,
           start: today,
-          startResin: resin?.normalAt(today) ?? 180,
+          startResin: resin?.normalAt(now) ?? 180,
           startCondensed: resin?.condensed ?? 0,
         );
       } on CalculationException {

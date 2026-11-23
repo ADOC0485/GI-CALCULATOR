@@ -11,6 +11,7 @@ import '../../progression/presentation/progression_dialog.dart'
     show progressionRulesProvider;
 import '../../resin/resin_bar.dart';
 import '../../resin/resin_state.dart';
+import '../../profiles/profile.dart';
 import '../data/build_repository.dart';
 import '../domain/build.dart';
 import '../domain/resin_planner.dart';
@@ -61,7 +62,11 @@ class _BuildPageState extends ConsumerState<BuildPage> {
   Set<String> done = {};
   bool inventoryLoaded = false;
   String? notice;
-  final today = DateTime.now();
+  /// Game day of the profile's server (it changes at 04:00 there).
+  late final DateTime today = gameDay(
+    DateTime.now(),
+    ref.read(activeServerProvider),
+  );
 
   @override
   void initState() {
@@ -228,7 +233,7 @@ class _BuildPageState extends ConsumerState<BuildPage> {
       schedule = scheduleResin(
         farm.tasks,
         start: today,
-        startResin: resin?.normalAt(today) ?? 180,
+        startResin: resin?.normalAt(DateTime.now()) ?? 180,
         startCondensed: resin?.condensed ?? 0,
       );
     } on CalculationException catch (e) {
@@ -359,7 +364,7 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                 Text(
                   resin == null
                       ? 'Resina: cargando…'
-                      : 'Resina para hoy: ${resin.normalAt(today)}'
+                      : 'Resina para hoy: ${resin.normalAt(DateTime.now())}'
                             '${resin.condensed > 0 ? ' + ${resin.condensed} concentrada' : ''}',
                 ),
                 TextButton.icon(

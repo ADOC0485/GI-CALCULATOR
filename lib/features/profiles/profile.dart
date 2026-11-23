@@ -7,6 +7,49 @@ import '../progression/data/scenario_repository.dart';
 /// Game servers, as chosen when logging in.
 const servers = ['América', 'Europa', 'Asia', 'TW, HK, MO', 'China'];
 
+/// Fixed UTC offset of each server's clock (no daylight saving).
+const serverUtcOffsetHours = {
+  'América': -5,
+  'Europa': 1,
+  'Asia': 8,
+  'TW, HK, MO': 8,
+  'China': 8,
+};
+
+/// Daily reset hour, in server time; the week resets on Monday at this hour.
+const resetHour = 4;
+
+/// Server clock shifted so that the game day starts at midnight.
+DateTime _shifted(DateTime now, String server) => now.toUtc().add(
+  Duration(hours: (serverUtcOffsetHours[server] ?? -5) - resetHour),
+);
+
+/// The game day [now] belongs to on [server] (it changes at 04:00 there).
+DateTime gameDay(DateTime now, String server) {
+  final t = _shifted(now, server);
+  return DateTime(t.year, t.month, t.day);
+}
+
+/// Time left until the next daily reset on [server].
+Duration untilDailyReset(DateTime now, String server) {
+  final t = _shifted(now, server);
+  return DateTime.utc(t.year, t.month, t.day + 1).difference(t);
+}
+
+/// Time left until the weekly reset (Monday 04:00 server time).
+Duration untilWeeklyReset(DateTime now, String server) {
+  final t = _shifted(now, server);
+  final daysToMonday = (DateTime.monday - t.weekday + 7) % 7;
+  return untilDailyReset(now, server) +
+      Duration(days: daysToMonday == 0 ? 6 : daysToMonday - 1);
+}
+
+/// Server of the profile in use.
+final activeServerProvider = Provider<String>(
+  (ref) =>
+      ref.watch(profilesProvider).asData?.value.active.server ?? servers.first,
+);
+
 /// A player account: its own builds, inventory, resin and history.
 class Profile {
   const Profile({
