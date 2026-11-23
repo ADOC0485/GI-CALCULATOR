@@ -1,7 +1,7 @@
 name: genshin_progress_planner
 description: Planificador local de progresión para Genshin Impact.
 publish_to: none
-version: 0.2.1+3
+version: 0.2.2+4
 environment:
   sdk: '>=3.13.4 <4.0.0'
 dependencies:
