@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Version of this build. Keep it equal to `version:` in pubspec.yaml
 /// (a test checks it); publishing bumps both.
-const appVersion = '0.2.0';
+const appVersion = '0.2.1';
 
 /// Repository whose GitHub Releases carry new versions of the app.
 const releasesRepository = 'ADOC0485/GI-CALCULATOR';
