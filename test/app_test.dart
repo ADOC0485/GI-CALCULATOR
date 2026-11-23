@@ -151,7 +151,7 @@ void main() {
     expect(find.text('¡Hola, Viajero!'), findsOneWidget);
   });
 
-  for (final width in [480.0, 800.0, 1280.0]) {
+  for (final width in [360.0, 480.0, 800.0, 1280.0]) {
     testWidgets('Resizable layout at width $width has no overflow', (
       tester,
     ) async {

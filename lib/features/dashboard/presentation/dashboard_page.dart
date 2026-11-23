@@ -68,18 +68,38 @@ class DashboardPage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: Card(
-              child: ListTile(
-                leading: ProfileAvatar(profile: profile),
-                title: const Text('Personaliza tu perfil'),
-                subtitle: const Text(
-                  'Ponle tu nombre, servidor, nivel de mundo, AR y tu personaje favorito como avatar.',
-                ),
-                trailing: FilledButton(
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (_) => ProfileDialog(existing: profile),
-                  ),
-                  child: const Text('Personalizar'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ProfileAvatar(profile: profile),
+                          const SizedBox(width: 12),
+                          const Flexible(
+                            child: Text(
+                              'Personaliza tu perfil: tu nombre, servidor, nivel de mundo, '
+                              'AR y tu personaje favorito como avatar.',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    FilledButton(
+                      onPressed: () => showDialog<void>(
+                        context: context,
+                        builder: (_) => ProfileDialog(existing: profile),
+                      ),
+                      child: const Text('Personalizar'),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -143,12 +163,19 @@ class _BuildsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                Icon(Icons.flag_outlined, color: theme.colorScheme.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text('Tus builds', style: theme.textTheme.titleLarge),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.flag_outlined, color: theme.colorScheme.primary),
+                    const SizedBox(width: 12),
+                    Text('Tus builds', style: theme.textTheme.titleLarge),
+                  ],
                 ),
                 FilledButton.icon(
                   key: const ValueKey('add-build'),
