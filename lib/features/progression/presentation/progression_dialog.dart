@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/presentation/calculator_fields.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../builds/data/build_repository.dart';
+import '../../builds/domain/build.dart';
 import '../../catalog/domain/catalog.dart';
 import '../data/scenario_repository.dart';
 import '../domain/inventory_plan.dart';
@@ -15,7 +19,6 @@ final progressionRulesProvider = FutureProvider(
 );
 
 const _talentNames = ['Ataque normal', 'Habilidad elemental', 'Definitiva'];
-const _talentKeys = ['Ataque', 'Habilidad', 'Definitiva'];
 
 
 class ProgressionDialog extends ConsumerStatefulWidget {
@@ -63,6 +66,7 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
   void initState() {
     super.initState();
     _loadInventory();
+    _loadFromBuild();
   }
 
   /// Inventory is shared by every character and weapon on this device.
@@ -157,73 +161,148 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
 
   void changed() => setState(() => notice = null);
 
-  Map<String, String> _fields() => {
-    for (final (side, suffix) in [(now, 'actual'), (goal, 'objetivo')]) ...{
-      'Nivel $suffix': side.level.text,
-      'Tope $suffix': '${side.cap}',
-      for (var i = 0; i < 3; i++)
-        '${_talentKeys[i]} $suffix': side.talents[i].text,
-    },
-    'Subir talentos': talentsOn ? 'sí' : 'no',
-  };
+  /// Starts from the saved build of this character (or the build that uses
+  /// this weapon), so the calculator shows where you really are.
+  Future<void> _loadFromBuild() async {
+    try {
+      final builds = await ref.read(buildRepositoryProvider).loadAll();
+      final build = builds
+          .where(
+            (b) => isCharacter
+                ? b.characterId == widget.record.id
+                : b.weaponId == widget.record.id,
+          )
+          .firstOrNull;
+      if (!mounted || build == null) return;
+      void fill(_Side side, ProgressionState state) {
+        side.level.text = '${state.level}';
+        side.cap = ProgressionRules.caps[state.ascension.clamp(0, 6)];
+        for (var i = 0; i < 3 && i < state.talents.length; i++) {
+          side.talents[i].text = '${state.talents[i]}';
+        }
+      }
 
-  void _restore(Map<String, dynamic> values) {
-    for (final (side, suffix) in [(now, 'actual'), (goal, 'objetivo')]) {
-      final level = values['Nivel $suffix'];
-      if (level is String) side.level.text = level;
-      final cap = int.tryParse('${values['Tope $suffix']}');
-      // Scenarios saved before this screen stored the ascension number.
-      final ascension = int.tryParse('${values['Ascensión $suffix']}');
-      if (cap != null) {
-        side.cap = cap;
-      } else if (ascension != null && ascension >= 0 && ascension <= 6) {
-        side.cap = ProgressionRules.caps[ascension];
-      }
-      for (var i = 0; i < 3; i++) {
-        final talent = values['${_talentKeys[i]} $suffix'];
-        if (talent is String) side.talents[i].text = talent;
-      }
+      setState(() {
+        if (isCharacter) {
+          fill(now, build.characterNow);
+          fill(goal, build.characterGoal);
+          talentsOn = build.talentsOn;
+        } else {
+          fill(now, build.weaponNow);
+          fill(goal, build.weaponGoal);
+        }
+        notice = 'Valores cargados de tu build.';
+      });
+    } catch (_) {
+      // No builds yet: keep the defaults.
     }
-    talentsOn = values['Subir talentos'] == 'sí' ||
-        (values['Subir talentos'] == null &&
-            values['Ataque objetivo'] is String &&
-            [for (final k in _talentKeys) values['$k objetivo']].any(
-              (v) => v != '1',
-            ));
   }
 
-  Future<void> storage(bool save) async {
+  /// Saves what the calculator shows into a build, so it appears in Inicio,
+  /// the agenda and the resin plan. Characters create or update their own
+  /// build; weapons go into a build whose character uses that weapon type.
+  Future<void> saveToBuild() async {
     setState(() {
       busy = true;
       notice = null;
     });
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.maybeOf(context);
     try {
-      final repo = ref.read(scenarioRepositoryProvider);
-      final key = 'progression:${widget.record.id}';
-      if (save) {
-        await repo.save(key, {
-          'schema': 2,
-          'catalogVersion': widget.bundle.version,
-          'fields': _fields(),
-        });
-        final previous = await repo.load(inventoryKey) ?? {};
-        await repo.save(inventoryKey, {...previous, ..._inventory()});
-        notice = 'Escenario guardado en este equipo.';
+      final repo = ref.read(buildRepositoryProvider);
+      final from = state(now, 'actual');
+      final to = state(goal, 'objetivo');
+      final builds = await repo.loadAll();
+      final records = {for (final r in widget.bundle.records) r.id: r};
+      String level(ProgressionState s) =>
+          '${s.level}/${ProgressionRules.caps[s.ascension]}';
+      GenshinBuild? saved;
+      if (isCharacter) {
+        final existing = builds
+            .where((b) => b.characterId == widget.record.id)
+            .firstOrNull;
+        saved = (existing ??
+                GenshinBuild(
+                  id: DateTime.now().microsecondsSinceEpoch.toString(),
+                  characterId: widget.record.id,
+                  characterNow: from,
+                  characterGoal: to,
+                ))
+            .copyWith(characterNow: from, characterGoal: to, talentsOn: talentsOn);
+        await repo.save(saved);
+        await repo.log(
+          '${existing == null ? 'Nueva build' : 'Build actualizada'} desde la calculadora: '
+          '${widget.record.name} (nivel ${level(from)} → ${level(to)}).',
+        );
       } else {
-        final stored = await repo.load(key);
-        if (!mounted) return;
-        if (stored == null) {
-          notice = 'Todavía no hay un escenario guardado.';
-        } else {
-          _restore(stored['fields'] as Map<String, dynamic>);
-          notice = stored['catalogVersion'] == widget.bundle.version
-              ? 'Escenario recuperado y recalculado.'
-              : 'El catálogo cambió: escenario recalculado con la versión activa.';
+        final type = widget.record.progression?.weaponType;
+        final candidates = builds
+            .where((b) => records[b.characterId]?.progression?.weaponType == type)
+            .toList();
+        if (candidates.isEmpty) {
+          setState(() => notice =
+              'Primero crea en Inicio una build de un personaje que use ${type?.toLowerCase() ?? 'esta arma'}.');
+          return;
         }
+        if (!mounted) return;
+        final target = candidates.length == 1
+            ? candidates.single
+            : await showDialog<GenshinBuild>(
+                context: context,
+                builder: (context) => SimpleDialog(
+                  title: const Text('¿A qué build se la pongo?'),
+                  children: [
+                    for (final b in candidates)
+                      SimpleDialogOption(
+                        onPressed: () => Navigator.pop(context, b),
+                        child: Text(records[b.characterId]?.name ?? b.characterId),
+                      ),
+                  ],
+                ),
+              );
+        if (target == null) return;
+        saved = target.copyWith(
+          weaponId: widget.record.id,
+          weaponNow: from,
+          weaponGoal: to,
+        );
+        await repo.save(saved);
+        await repo.log(
+          '${widget.record.name} añadida a la build de '
+          '${records[target.characterId]?.name ?? target.characterId} '
+          '(nivel ${level(from)} → ${level(to)}).',
+        );
       }
+      // What you typed as owned also goes to the shared inventory.
+      final scenarios = ref.read(scenarioRepositoryProvider);
+      final previous = await scenarios.load(inventoryKey) ?? {};
+      await scenarios.save(inventoryKey, {...previous, ..._inventory()});
+      ref
+        ..invalidate(buildsProvider)
+        ..invalidate(inventoryProvider)
+        ..invalidate(historyProvider);
+      if (!mounted) return;
+      Navigator.pop(context);
+      final id = saved.id;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            isCharacter
+                ? 'Build de ${widget.record.name} guardada.'
+                : '${widget.record.name} guardada en la build.',
+          ),
+          action: router == null
+              ? null
+              : SnackBarAction(
+                  label: 'Ver build',
+                  onPressed: () => router.go('/build/$id'),
+                ),
+        ),
+      );
+    } on CalculationException catch (e) {
+      setState(() => notice = e.message);
     } catch (_) {
-      notice =
-          'No se pudo guardar o recuperar el escenario. Tus datos anteriores se conservan.';
+      setState(() => notice = 'No se pudo guardar en tus builds. Inténtalo de nuevo.');
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -760,16 +839,14 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: busy ? null : () => storage(false),
-          child: const Text('Recuperar escenario'),
-        ),
-        FilledButton(
-          onPressed: busy || result == null ? null : () => storage(true),
-          child: const Text('Guardar escenario'),
-        ),
-        TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('Cerrar'),
+        ),
+        FilledButton.icon(
+          key: const ValueKey('save-to-build'),
+          onPressed: busy || result == null ? null : saveToBuild,
+          icon: Icon(isCharacter ? Icons.flag_outlined : Icons.add_link),
+          label: Text(isCharacter ? 'Guardar como build' : 'Añadir a una build'),
         ),
       ],
     );

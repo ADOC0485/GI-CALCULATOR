@@ -174,6 +174,15 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
     fieldViewBuilder: (context, controller, focus, submit) => TextField(
       controller: controller,
       focusNode: focus,
+      // Typing the full name counts as choosing it (handy on phones, where
+      // people often skip tapping the suggestion).
+      onChanged: (text) {
+        final typed = text.trim().toLowerCase();
+        final match = options
+            .where((r) => r.name.toLowerCase() == typed)
+            .firstOrNull;
+        if (match != null && match.id != selected?.id) onSelected(match);
+      },
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: selected?.image == null
@@ -260,29 +269,35 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
     );
   }
 
-  Widget _talentRow(int i) => Wrap(
-    spacing: 12,
-    runSpacing: 8,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    children: [
-      SizedBox(width: 150, child: Text(_talentNames[i])),
-      for (final (c, label) in [(talentsNow[i], 'Ahora'), (talentsGoal[i], 'Objetivo')])
-        SizedBox(
-          width: 90,
-          child: TextField(
-            controller: c,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            textAlign: TextAlign.center,
-            decoration: InputDecoration(
-              labelText: label,
-              isDense: true,
-              border: const OutlineInputBorder(),
-            ),
-          ),
+  /// One line per talent: name · now → target (fits a phone screen).
+  Widget _talentRow(int i) {
+    Widget field(TextEditingController c, String label) => SizedBox(
+      width: 68,
+      child: TextField(
+        key: ValueKey('talent-$i-$label'),
+        controller: c,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        textAlign: TextAlign.center,
+        decoration: InputDecoration(
+          labelText: label,
+          isDense: true,
+          border: const OutlineInputBorder(),
         ),
-    ],
-  );
+      ),
+    );
+    return Row(
+      children: [
+        Expanded(child: Text(_talentNames[i])),
+        field(talentsNow[i], 'Ahora'),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 6),
+          child: Icon(Icons.arrow_forward, size: 16),
+        ),
+        field(talentsGoal[i], 'Meta'),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -352,14 +367,23 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
                   ),
               ],
               title('Arma (opcional)'),
-              _picker(
-                character == null
-                    ? 'Busca el arma'
-                    : 'Busca un ${character!.progression?.weaponType.toLowerCase()}',
-                weapons,
-                weapon,
-                (r) => setState(() => weapon = r),
-              ),
+              if (character == null)
+                const TextField(
+                  enabled: false,
+                  decoration: InputDecoration(
+                    labelText: 'Elige primero el personaje',
+                    helperText: 'Así solo verás armas del tipo que usa.',
+                    prefixIcon: Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                )
+              else
+                _picker(
+                  'Busca un ${character!.progression?.weaponType.toLowerCase()}',
+                  weapons,
+                  weapon,
+                  (r) => setState(() => weapon = r),
+                ),
               if (weapon != null) ...[
                 const SizedBox(height: 12),
                 Wrap(

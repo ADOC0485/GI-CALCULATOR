@@ -4,8 +4,10 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genshin_progress_planner/data/database/app_database.dart';
+import 'package:genshin_progress_planner/data/database/app_database.dart'
+    hide CatalogRecord;
 import 'package:genshin_progress_planner/data/database/database_provider.dart';
+import 'package:genshin_progress_planner/features/builds/data/build_repository.dart';
 import 'package:genshin_progress_planner/features/wishes/presentation/wishes_page.dart';
 import 'package:genshin_progress_planner/features/progression/presentation/progression_dialog.dart';
 import 'package:genshin_progress_planner/features/progression/domain/progression_calculator.dart';
@@ -172,8 +174,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester
-            .widget<FilledButton>(
-              find.widgetWithText(FilledButton, 'Guardar escenario'),
+            .widget<ButtonStyleButton>(
+              find.byKey(const ValueKey('save-to-build')),
             )
             .onPressed,
         isNull,
@@ -181,4 +183,88 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('Calculator saves into builds and reloads from them', (
+    tester,
+  ) async {
+    final bundle = CatalogBundle.parse(
+      File('assets/catalog/seed-v1.json').readAsStringSync(),
+    );
+    final amber = bundle.records.firstWhere((r) => r.name == 'Amber');
+    final bow = bundle.records.firstWhere((r) => r.id == 'weapon:15401');
+    tester.view.physicalSize = const Size(900, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final container = ProviderContainer(
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        progressionRulesProvider.overrideWith(
+          (ref) async => ProgressionRules(
+            File('assets/rules/progression-v1.json').readAsStringSync(),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    Future<void> open(CatalogRecord record) async {
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => FilledButton(
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (_) =>
+                        ProgressionDialog(bundle: bundle, record: record),
+                  ),
+                  child: const Text('abrir'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+    }
+
+    await open(amber);
+    await tester.enterText(find.byKey(const ValueKey('level-actual')), '50');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('save-to-build')));
+    await tester.pumpAndSettle();
+    expect(find.text('Build de Amber guardada.'), findsOneWidget);
+    final repo = container.read(buildRepositoryProvider);
+    final saved = (await repo.loadAll()).single;
+    expect(saved.characterId, amber.id);
+    expect(saved.characterNow.level, 50);
+    expect(saved.characterGoal.level, 90);
+
+    // Reopening the calculator starts from the build.
+    await open(amber);
+    expect(find.text('Valores cargados de tu build.'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('level-actual')))
+          .controller!
+          .text,
+      '50',
+    );
+    await tester.tap(find.text('Cerrar'));
+    await tester.pumpAndSettle();
+
+    // A bow goes into Amber's build, the only one that uses bows.
+    await open(bow);
+    await tester.tap(find.byKey(const ValueKey('save-to-build')));
+    await tester.pumpAndSettle();
+    final withBow = (await repo.loadAll()).single;
+    expect(withBow.weaponId, bow.id);
+    expect(withBow.weaponGoal.level, 90);
+    expect(tester.takeException(), isNull);
+  });
 }

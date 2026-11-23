@@ -68,10 +68,12 @@ void main() {
     );
     await tester.tap(find.text('abrir'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, 'Amb');
+    // The weapon stays locked until there is a character.
+    expect(find.text('Elige primero el personaje'), findsOneWidget);
+    // Typing the full name selects it, even without tapping the suggestion.
+    await tester.enterText(find.byType(TextField).first, 'amber');
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ListTile, 'Amber'));
-    await tester.pumpAndSettle();
+    expect(find.text('Elige primero el personaje'), findsNothing);
     // Only bows are offered for Amber.
     await tester.enterText(
       find.widgetWithText(TextField, 'Busca un arco'),
