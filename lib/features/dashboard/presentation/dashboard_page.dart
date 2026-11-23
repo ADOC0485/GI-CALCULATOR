@@ -46,13 +46,19 @@ class DashboardPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Este espacio reunirá tus personajes, recursos y actividades.\nPor ahora, puedes elegir la apariencia de tu planificador.',
+                  'Explora personajes, armas y materiales del catálogo inicial.\nConsulta sus fuentes y los datos pendientes de verificación.',
                 ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed: () => context.go('/settings'),
                   icon: const Icon(Icons.tune_rounded),
                   label: const Text('Personalizar apariencia'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => context.go('/characters'),
+                  icon: const Icon(Icons.menu_book_outlined),
+                  label: const Text('Explorar catálogo'),
                 ),
               ],
             ),
@@ -100,7 +106,7 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(width: 10),
             const Expanded(
               child: Text(
-                'Versión inicial · El catálogo y las calculadoras están en preparación. No se muestran estimaciones ni datos de juego sin verificar.',
+                'Catálogo inicial disponible · Las calculadoras y la planificación están en preparación. Los datos pendientes se indican en cada ficha.',
               ),
             ),
           ],

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/database/database_provider.dart';
+
 import '../features/settings/domain/app_preferences.dart';
 import '../features/settings/presentation/preferences_controller.dart';
 import 'app_router.dart';
@@ -57,6 +59,7 @@ class PlannerApp extends ConsumerWidget {
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: () {
+                      ref.invalidate(databaseProvider);
                       ref.invalidate(preferencesRepositoryProvider);
                       ref.invalidate(preferencesProvider);
                     },

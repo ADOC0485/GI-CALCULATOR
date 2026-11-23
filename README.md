@@ -4,14 +4,16 @@ Aplicación prevista en Flutter y Dart para planificar personajes, armas, invent
 
 ## Estado
 
-Fase 1 cerrada y validada el 2026-11-19. Navegación, apariencia y persistencia de preferencias implementadas; catálogo, calculadoras, inventario y agenda funcional se incorporarán en sus fases, después de aprobación.
+Fase 1 cerrada. Fase 2 implementada y validada, pendiente de aprobación: catálogo inicial de 92 registros, consulta de personajes/armas/materiales/actividades e importación versionada. Las calculadoras, el inventario y la agenda funcional se implementarán en sus fases, después de aprobación.
 
 - [Plan técnico y arquitectura](docs/PLAN_TECNICO.md)
 - [Verificaciones del entorno](docs/FASE_0.md)
 - [Cierre y validación de Fase 1](docs/FASE_1.md)
+- [Entrega y validación de Fase 2](docs/FASE_2.md)
 - [Fuentes y política de datos](docs/FUENTES.md)
 - [Mockup conceptual de Windows](docs/mockups/README.md)
 - [Alcance de la calculadora de deseos](docs/DESEOS.md)
+- [Catálogo, fuentes, formato e importación](docs/CATALOGO.md)
 
 ## Desarrollo en Windows
 
@@ -28,13 +30,14 @@ flutter run -d windows
 
 Compilación de desarrollo: `flutter build windows --debug`. El ejecutable se genera en `build/windows/x64/runner/Debug/genshin_progress_planner.exe`; requiere los demás archivos de esa carpeta. No es todavía el instalador final ni la versión Release de Fase 8.
 
-La base `genshin_progress_planner.sqlite` se abre en el directorio de soporte de la aplicación devuelto por `path_provider`, fuera del repositorio. Solo almacena preferencias de apariencia en esta fase. Si no puede abrirse, la aplicación ofrece reintentar sin eliminar datos. Cambios de esquema futuros requieren una migración explícita; no hay reinicio destructivo automático.
+La base `genshin_progress_planner.sqlite` se abre en el directorio de soporte de la aplicación devuelto por `path_provider`, fuera del repositorio. Almacena preferencias y versiones del catálogo. Si no puede abrirse, la aplicación ofrece reintentar sin eliminar datos. Cambios de esquema requieren migraciones explícitas; no hay reinicio destructivo automático.
 
 ## Estructura implementada
 
 - `lib/app`: tema, router y navegación de escritorio.
 - `lib/core/presentation`: composición visual compartida.
-- `lib/data/database`: SQLite con Drift y esquema inicial.
+- `lib/data/database`: SQLite con Drift, esquema 2 y migración desde esquema 1.
+- `lib/features/catalog`: modelos, validación, importación transaccional y consulta del catálogo.
 - `lib/features/settings`: entidad e interfaz Dart puro, repositorio Drift y controlador Riverpod.
 - `lib/features/dashboard`: pantalla inicial con estados vacíos.
 - `test` e `integration_test`: persistencia, integridad, navegación y recuperación de errores.

@@ -1,0 +1,3213 @@
+{
+  "schemaVersion": 1,
+  "version": "2026.11.19.1",
+  "sequence": 1,
+  "gameVersion": "7.2",
+  "createdAt": "2026-11-19",
+  "versionSource": "https://genshin.hoyoverse.com/m/es/news/detail/167131",
+  "records": [
+    {
+      "id": "activity:domain:4210",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Altar de la escarcha I",
+      "activityType": "talentDomain",
+      "days": [
+        1,
+        4,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 25,
+      "rewards": [
+        "material:202",
+        "material:104301"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryfrostedaltari.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4211",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Altar de la escarcha II",
+      "activityType": "talentDomain",
+      "days": [
+        1,
+        4,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 28,
+      "rewards": [
+        "material:202",
+        "material:104302",
+        "material:104301"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryfrostedaltarii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4212",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Altar de la escarcha III",
+      "activityType": "talentDomain",
+      "days": [
+        1,
+        4,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 36,
+      "rewards": [
+        "material:202",
+        "material:104302",
+        "material:104301"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryfrostedaltariii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4213",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Altar de la escarcha IV",
+      "activityType": "talentDomain",
+      "days": [
+        1,
+        4,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 45,
+      "rewards": [
+        "material:202",
+        "material:104303",
+        "material:104302",
+        "material:104301"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryfrostedaltariv.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4220",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Abismo helado I",
+      "activityType": "talentDomain",
+      "days": [
+        2,
+        5,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 25,
+      "rewards": [
+        "material:202"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryfrozenabyssi.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4221",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Abismo helado II",
+      "activityType": "talentDomain",
+      "days": [
+        2,
+        5,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 28,
+      "rewards": [
+        "material:202"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryfrozenabyssii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4222",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Abismo helado III",
+      "activityType": "talentDomain",
+      "days": [
+        2,
+        5,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 36,
+      "rewards": [
+        "material:202"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryfrozenabyssiii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4223",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Abismo helado IV",
+      "activityType": "talentDomain",
+      "days": [
+        2,
+        5,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 45,
+      "rewards": [
+        "material:202"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryfrozenabyssiv.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4230",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Reino del letargo I",
+      "activityType": "talentDomain",
+      "days": [
+        3,
+        6,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 25,
+      "rewards": [
+        "material:202",
+        "material:104307"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryrealmofslumberi.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4231",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Reino del letargo II",
+      "activityType": "talentDomain",
+      "days": [
+        3,
+        6,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 28,
+      "rewards": [
+        "material:202",
+        "material:104308",
+        "material:104307"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryrealmofslumberii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4232",
+      "kind": "activity",
+      "name": "Dominio de la maestría: Reino del letargo III",
+      "activityType": "talentDomain",
+      "days": [
+        3,
+        6,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 36,
+      "rewards": [
+        "material:202",
+        "material:104308",
+        "material:104307"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryrealmofslumberiii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4233",
+      "kind": "activity",
+      "name": "Dominio de la maestría: El Reino del letargo IV",
+      "activityType": "talentDomain",
+      "days": [
+        3,
+        6,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 45,
+      "rewards": [
+        "material:202",
+        "material:104309",
+        "material:104308",
+        "material:104307"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofmasteryrealmofslumberiv.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4310",
+      "kind": "activity",
+      "name": "Dominio de la forja: Ciudad de los reflejos I",
+      "activityType": "weaponDomain",
+      "days": [
+        1,
+        4,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 15,
+      "rewards": [
+        "material:202"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgerycityofreflectionsi.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4311",
+      "kind": "activity",
+      "name": "Dominio de la forja: Ciudad de los reflejos II",
+      "activityType": "weaponDomain",
+      "days": [
+        1,
+        4,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 21,
+      "rewards": [
+        "material:202"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgerycityofreflectionsii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4312",
+      "kind": "activity",
+      "name": "Dominio de la forja: Ciudad de los reflejos III",
+      "activityType": "weaponDomain",
+      "days": [
+        1,
+        4,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 30,
+      "rewards": [
+        "material:202"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgerycityofreflectionsiii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4313",
+      "kind": "activity",
+      "name": "Dominio de la forja: Ciudad de los reflejos IV",
+      "activityType": "weaponDomain",
+      "days": [
+        1,
+        4,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 40,
+      "rewards": [
+        "material:202"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgerycityofreflectionsiv.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4320",
+      "kind": "activity",
+      "name": "Dominio de la forja: Valle sumergido I",
+      "activityType": "weaponDomain",
+      "days": [
+        2,
+        5,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 15,
+      "rewards": [
+        "material:202",
+        "material:114005"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgerysubmergedvalleyi.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4321",
+      "kind": "activity",
+      "name": "Dominio de la forja: Valle sumergido II",
+      "activityType": "weaponDomain",
+      "days": [
+        2,
+        5,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 21,
+      "rewards": [
+        "material:202",
+        "material:114006",
+        "material:114005"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgerysubmergedvalleyii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4322",
+      "kind": "activity",
+      "name": "Dominio de la forja: Valle sumergido III",
+      "activityType": "weaponDomain",
+      "days": [
+        2,
+        5,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 30,
+      "rewards": [
+        "material:202",
+        "material:114007",
+        "material:114006",
+        "material:114005"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgerysubmergedvalleyiii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4323",
+      "kind": "activity",
+      "name": "Dominio de la forja: Valle sumergido IV",
+      "activityType": "weaponDomain",
+      "days": [
+        2,
+        5,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 40,
+      "rewards": [
+        "material:202",
+        "material:114008",
+        "material:114007",
+        "material:114006",
+        "material:114005"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgerysubmergedvalleyiv.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4330",
+      "kind": "activity",
+      "name": "Dominio de la forja: Ruinas de la ciudad sedienta I",
+      "activityType": "weaponDomain",
+      "days": [
+        3,
+        6,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 15,
+      "rewards": [
+        "material:202",
+        "material:114009"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgeryruinsofthirstingcapitali.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4331",
+      "kind": "activity",
+      "name": "Dominio de la forja: Ruinas de la ciudad sedienta II",
+      "activityType": "weaponDomain",
+      "days": [
+        3,
+        6,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 21,
+      "rewards": [
+        "material:202",
+        "material:114010",
+        "material:114009"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgeryruinsofthirstingcapitalii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4332",
+      "kind": "activity",
+      "name": "Dominio de la forja: Ruinas de la ciudad sedienta III",
+      "activityType": "weaponDomain",
+      "days": [
+        3,
+        6,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 30,
+      "rewards": [
+        "material:202",
+        "material:114011",
+        "material:114010",
+        "material:114009"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgeryruinsofthirstingcapitaliii.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:domain:4333",
+      "kind": "activity",
+      "name": "Dominio de la forja: Ruinas de la ciudad sedienta IV",
+      "activityType": "weaponDomain",
+      "days": [
+        3,
+        6,
+        7
+      ],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": 40,
+      "rewards": [
+        "material:202",
+        "material:114012",
+        "material:114011",
+        "material:114010",
+        "material:114009"
+      ],
+      "pendingFields": [
+        "resinCost",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/domains/domainofforgeryruinsofthirstingcapitaliv.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:enemy:20040101",
+      "kind": "activity",
+      "name": "Hipóstasis Electro",
+      "activityType": "normalBoss",
+      "days": [],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": null,
+      "rewards": [
+        "material:202",
+        "material:113002",
+        "material:104144",
+        "material:104143",
+        "material:104142",
+        "material:104141"
+      ],
+      "pendingFields": [
+        "days",
+        "resinCost",
+        "weeklyLimit",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/enemies/electrohypostasis.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:enemy:26020101",
+      "kind": "activity",
+      "name": "Regisvid Cryo",
+      "activityType": "normalBoss",
+      "days": [],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": null,
+      "rewards": [
+        "material:202",
+        "material:113010",
+        "material:104164",
+        "material:104163",
+        "material:104162",
+        "material:104161"
+      ],
+      "pendingFields": [
+        "days",
+        "resinCost",
+        "weeklyLimit",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/enemies/cryoregisvine.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:enemy:26020201",
+      "kind": "activity",
+      "name": "Regisvid Pyro",
+      "activityType": "normalBoss",
+      "days": [],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": null,
+      "rewards": [
+        "material:202",
+        "material:113011",
+        "material:104114",
+        "material:104113",
+        "material:104112",
+        "material:104111"
+      ],
+      "pendingFields": [
+        "days",
+        "resinCost",
+        "weeklyLimit",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/enemies/pyroregisvine.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "activity:enemy:29010101",
+      "kind": "activity",
+      "name": "Stormterror",
+      "activityType": "weeklyBoss",
+      "days": [],
+      "resinCost": null,
+      "weeklyLimit": null,
+      "unlockRank": null,
+      "rewards": [
+        "material:202",
+        "material:113004",
+        "material:113005",
+        "material:104144",
+        "material:104143",
+        "material:104142",
+        "material:104141"
+      ],
+      "pendingFields": [
+        "days",
+        "resinCost",
+        "weeklyLimit",
+        "rewardDistribution"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/enemies/stormterror.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "character:10000006",
+      "kind": "character",
+      "name": "Lisa",
+      "rarity": 4,
+      "element": "Electro",
+      "region": "Mondstadt",
+      "weaponType": "Catalizador",
+      "maxLevel": null,
+      "requirements": [
+        {
+          "kind": "ascension",
+          "stage": 1,
+          "materials": {
+            "material:202": 20000,
+            "material:104141": 1,
+            "material:100022": 3,
+            "material:112002": 3
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 2,
+          "materials": {
+            "material:202": 40000,
+            "material:104142": 3,
+            "material:113002": 2,
+            "material:100022": 10,
+            "material:112002": 15
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 3,
+          "materials": {
+            "material:202": 60000,
+            "material:104142": 6,
+            "material:113002": 4,
+            "material:100022": 20,
+            "material:112003": 12
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 4,
+          "materials": {
+            "material:202": 80000,
+            "material:104143": 3,
+            "material:113002": 8,
+            "material:100022": 30,
+            "material:112003": 18
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 5,
+          "materials": {
+            "material:202": 100000,
+            "material:104143": 6,
+            "material:113002": 12,
+            "material:100022": 45,
+            "material:112004": 12
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 6,
+          "materials": {
+            "material:202": 120000,
+            "material:104144": 6,
+            "material:113002": 20,
+            "material:100022": 60,
+            "material:112004": 24
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 2,
+          "materials": {
+            "material:202": 12500,
+            "material:104307": 3,
+            "material:112002": 6
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 3,
+          "materials": {
+            "material:202": 17500,
+            "material:104308": 2,
+            "material:112003": 3
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 4,
+          "materials": {
+            "material:202": 25000,
+            "material:104308": 4,
+            "material:112003": 4
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 5,
+          "materials": {
+            "material:202": 30000,
+            "material:104308": 6,
+            "material:112003": 6
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 6,
+          "materials": {
+            "material:202": 37500,
+            "material:104308": 9,
+            "material:112003": 9
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 7,
+          "materials": {
+            "material:202": 120000,
+            "material:104309": 4,
+            "material:112004": 4,
+            "material:113004": 1
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 8,
+          "materials": {
+            "material:202": 260000,
+            "material:104309": 6,
+            "material:112004": 6,
+            "material:113004": 1
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 9,
+          "materials": {
+            "material:202": 450000,
+            "material:104309": 12,
+            "material:112004": 9,
+            "material:113004": 2
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 10,
+          "materials": {
+            "material:202": 700000,
+            "material:104309": 16,
+            "material:112004": 12,
+            "material:113004": 2,
+            "material:104319": 1
+          }
+        }
+      ],
+      "experience": [],
+      "activityIds": [
+        "activity:domain:4230",
+        "activity:domain:4231",
+        "activity:domain:4232",
+        "activity:domain:4233",
+        "activity:enemy:20040101",
+        "activity:enemy:29010101"
+      ],
+      "pendingFields": [
+        "experience",
+        "levelCaps",
+        "constellationBonuses"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/characters/lisa.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": [
+        "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/talents/lisa.json"
+      ]
+    },
+    {
+      "id": "character:10000015",
+      "kind": "character",
+      "name": "Kaeya",
+      "rarity": 4,
+      "element": "Cryo",
+      "region": "Mondstadt",
+      "weaponType": "Espada ligera",
+      "maxLevel": null,
+      "requirements": [
+        {
+          "kind": "ascension",
+          "stage": 1,
+          "materials": {
+            "material:202": 20000,
+            "material:104161": 1,
+            "material:100056": 3,
+            "material:112035": 3
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 2,
+          "materials": {
+            "material:202": 40000,
+            "material:104162": 3,
+            "material:113010": 2,
+            "material:100056": 10,
+            "material:112035": 15
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 3,
+          "materials": {
+            "material:202": 60000,
+            "material:104162": 6,
+            "material:113010": 4,
+            "material:100056": 20,
+            "material:112036": 12
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 4,
+          "materials": {
+            "material:202": 80000,
+            "material:104163": 3,
+            "material:113010": 8,
+            "material:100056": 30,
+            "material:112036": 18
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 5,
+          "materials": {
+            "material:202": 100000,
+            "material:104163": 6,
+            "material:113010": 12,
+            "material:100056": 45,
+            "material:112037": 12
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 6,
+          "materials": {
+            "material:202": 120000,
+            "material:104164": 6,
+            "material:113010": 20,
+            "material:100056": 60,
+            "material:112037": 24
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 2,
+          "materials": {
+            "material:202": 12500,
+            "material:104307": 3,
+            "material:112035": 6
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 3,
+          "materials": {
+            "material:202": 17500,
+            "material:104308": 2,
+            "material:112036": 3
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 4,
+          "materials": {
+            "material:202": 25000,
+            "material:104308": 4,
+            "material:112036": 4
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 5,
+          "materials": {
+            "material:202": 30000,
+            "material:104308": 6,
+            "material:112036": 6
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 6,
+          "materials": {
+            "material:202": 37500,
+            "material:104308": 9,
+            "material:112036": 9
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 7,
+          "materials": {
+            "material:202": 120000,
+            "material:104309": 4,
+            "material:112037": 4,
+            "material:113008": 1
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 8,
+          "materials": {
+            "material:202": 260000,
+            "material:104309": 6,
+            "material:112037": 6,
+            "material:113008": 1
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 9,
+          "materials": {
+            "material:202": 450000,
+            "material:104309": 12,
+            "material:112037": 9,
+            "material:113008": 2
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 10,
+          "materials": {
+            "material:202": 700000,
+            "material:104309": 16,
+            "material:112037": 12,
+            "material:113008": 2,
+            "material:104319": 1
+          }
+        }
+      ],
+      "experience": [],
+      "activityIds": [
+        "activity:domain:4230",
+        "activity:domain:4231",
+        "activity:domain:4232",
+        "activity:domain:4233",
+        "activity:enemy:26020101"
+      ],
+      "pendingFields": [
+        "experience",
+        "levelCaps",
+        "constellationBonuses"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/characters/kaeya.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": [
+        "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/talents/kaeya.json"
+      ]
+    },
+    {
+      "id": "character:10000021",
+      "kind": "character",
+      "name": "Amber",
+      "rarity": 4,
+      "element": "Pyro",
+      "region": "Mondstadt",
+      "weaponType": "Arco",
+      "maxLevel": null,
+      "requirements": [
+        {
+          "kind": "ascension",
+          "stage": 1,
+          "materials": {
+            "material:202": 20000,
+            "material:104111": 1,
+            "material:100055": 3,
+            "material:112011": 3
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 2,
+          "materials": {
+            "material:202": 40000,
+            "material:104112": 3,
+            "material:113011": 2,
+            "material:100055": 10,
+            "material:112011": 15
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 3,
+          "materials": {
+            "material:202": 60000,
+            "material:104112": 6,
+            "material:113011": 4,
+            "material:100055": 20,
+            "material:112012": 12
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 4,
+          "materials": {
+            "material:202": 80000,
+            "material:104113": 3,
+            "material:113011": 8,
+            "material:100055": 30,
+            "material:112012": 18
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 5,
+          "materials": {
+            "material:202": 100000,
+            "material:104113": 6,
+            "material:113011": 12,
+            "material:100055": 45,
+            "material:112013": 12
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 6,
+          "materials": {
+            "material:202": 120000,
+            "material:104114": 6,
+            "material:113011": 20,
+            "material:100055": 60,
+            "material:112013": 24
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 2,
+          "materials": {
+            "material:202": 12500,
+            "material:104301": 3,
+            "material:112011": 6
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 3,
+          "materials": {
+            "material:202": 17500,
+            "material:104302": 2,
+            "material:112012": 3
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 4,
+          "materials": {
+            "material:202": 25000,
+            "material:104302": 4,
+            "material:112012": 4
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 5,
+          "materials": {
+            "material:202": 30000,
+            "material:104302": 6,
+            "material:112012": 6
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 6,
+          "materials": {
+            "material:202": 37500,
+            "material:104302": 9,
+            "material:112012": 9
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 7,
+          "materials": {
+            "material:202": 120000,
+            "material:104303": 4,
+            "material:112013": 4,
+            "material:113005": 1
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 8,
+          "materials": {
+            "material:202": 260000,
+            "material:104303": 6,
+            "material:112013": 6,
+            "material:113005": 1
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 9,
+          "materials": {
+            "material:202": 450000,
+            "material:104303": 12,
+            "material:112013": 9,
+            "material:113005": 2
+          }
+        },
+        {
+          "kind": "talent",
+          "stage": 10,
+          "materials": {
+            "material:202": 700000,
+            "material:104303": 16,
+            "material:112013": 12,
+            "material:113005": 2,
+            "material:104319": 1
+          }
+        }
+      ],
+      "experience": [],
+      "activityIds": [
+        "activity:domain:4210",
+        "activity:domain:4211",
+        "activity:domain:4212",
+        "activity:domain:4213",
+        "activity:enemy:26020201",
+        "activity:enemy:29010101"
+      ],
+      "pendingFields": [
+        "experience",
+        "levelCaps",
+        "constellationBonuses"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/characters/amber.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": [
+        "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/talents/amber.json"
+      ]
+    },
+    {
+      "id": "material:100022",
+      "kind": "material",
+      "name": "Valbaya",
+      "rarity": null,
+      "category": "Objeto típico de Mondstadt",
+      "sourceHints": [
+        "Recolectar en las Montañas Portatormentas",
+        "Plantar en la Relajatetera",
+        "Recolectar"
+      ],
+      "activityIds": [],
+      "pendingFields": [
+        "rarity"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/valberry.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:100055",
+      "kind": "material",
+      "name": "Lucetta",
+      "rarity": null,
+      "category": "Objeto típico de Mondstadt",
+      "sourceHints": [
+        "Recolectar en el Reino de los Lobos",
+        "Recolectar en el Bosque Susurrante",
+        "Plantar en la Relajatetera",
+        "Recolectar"
+      ],
+      "activityIds": [],
+      "pendingFields": [
+        "rarity"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/smalllampgrass.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:100056",
+      "kind": "material",
+      "name": "Lirio cala",
+      "rarity": null,
+      "category": "Objeto típico de Mondstadt",
+      "sourceHints": [
+        "Recolectar en la orilla de los lagos",
+        "Recolectar en la Aldea Aguaclara",
+        "Plantar en la Relajatetera",
+        "Recolectar"
+      ],
+      "activityIds": [],
+      "pendingFields": [
+        "rarity"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/callalily.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104111",
+      "kind": "material",
+      "name": "Pedacito de ágata agnidus",
+      "rarity": 2,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Canjear en la tienda de recuerdos",
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación"
+      ],
+      "activityIds": [
+        "activity:enemy:26020201"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/agnidusagatesliver.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104112",
+      "kind": "material",
+      "name": "Fragmento de ágata agnidus",
+      "rarity": 3,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:26020201"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/agnidusagatefragment.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104113",
+      "kind": "material",
+      "name": "Trozo de ágata agnidus",
+      "rarity": 4,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:26020201"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/agnidusagatechunk.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104114",
+      "kind": "material",
+      "name": "Ágata agnidus",
+      "rarity": 5,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:26020201"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/agnidusagategemstone.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104141",
+      "kind": "material",
+      "name": "Pedacito de amatista vajrada",
+      "rarity": 2,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Canjear en la tienda de recuerdos",
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación"
+      ],
+      "activityIds": [
+        "activity:enemy:20040101",
+        "activity:enemy:29010101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/vajradaamethystsliver.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104142",
+      "kind": "material",
+      "name": "Fragmento de amatista vajrada",
+      "rarity": 3,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:20040101",
+        "activity:enemy:29010101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/vajradaamethystfragment.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104143",
+      "kind": "material",
+      "name": "Trozo de amatista vajrada",
+      "rarity": 4,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:20040101",
+        "activity:enemy:29010101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/vajradaamethystchunk.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104144",
+      "kind": "material",
+      "name": "Amatista vajrada",
+      "rarity": 5,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:20040101",
+        "activity:enemy:29010101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/vajradaamethystgemstone.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104161",
+      "kind": "material",
+      "name": "Pedacito de jade shivada",
+      "rarity": 2,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Canjear en la tienda de recuerdos",
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación"
+      ],
+      "activityIds": [
+        "activity:enemy:26020101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/shivadajadesliver.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104162",
+      "kind": "material",
+      "name": "Fragmento de jade shivada",
+      "rarity": 3,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:26020101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/shivadajadefragment.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104163",
+      "kind": "material",
+      "name": "Trozo de jade shivada",
+      "rarity": 4,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:26020101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/shivadajadechunk.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104164",
+      "kind": "material",
+      "name": "Jade shivada",
+      "rarity": 5,
+      "category": "Material de ascensión de personaje",
+      "sourceHints": [
+        "Ver pestaña de “Enemigos” del Manual del aventurero",
+        "Obtenido al realizar una conversión en la mesa de fabricación",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:enemy:26020101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/shivadajadegemstone.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104301",
+      "kind": "material",
+      "name": "Enseñanzas de la libertad",
+      "rarity": 2,
+      "category": "Material de talento de personaje",
+      "sourceHints": [
+        "Canjear en la Tienda de paquetes"
+      ],
+      "activityIds": [
+        "activity:domain:4210",
+        "activity:domain:4211",
+        "activity:domain:4212",
+        "activity:domain:4213"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/teachingsoffreedom.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104302",
+      "kind": "material",
+      "name": "Guía de la libertad",
+      "rarity": 3,
+      "category": "Material de talento de personaje",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4211",
+        "activity:domain:4212",
+        "activity:domain:4213"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/guidetofreedom.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104303",
+      "kind": "material",
+      "name": "Filosofía de la libertad",
+      "rarity": 4,
+      "category": "Material de talento de personaje",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4213"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/philosophiesoffreedom.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104307",
+      "kind": "material",
+      "name": "Enseñanzas de la poesía",
+      "rarity": 2,
+      "category": "Material de talento de personaje",
+      "sourceHints": [
+        "Canjear en la Tienda de paquetes"
+      ],
+      "activityIds": [
+        "activity:domain:4230",
+        "activity:domain:4231",
+        "activity:domain:4232",
+        "activity:domain:4233"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/teachingsofballad.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104308",
+      "kind": "material",
+      "name": "Guía de la poesía",
+      "rarity": 3,
+      "category": "Material de talento de personaje",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4231",
+        "activity:domain:4232",
+        "activity:domain:4233"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/guidetoballad.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104309",
+      "kind": "material",
+      "name": "Filosofía de la poesía",
+      "rarity": 4,
+      "category": "Material de talento de personaje",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4233"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/philosophiesofballad.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:104319",
+      "kind": "material",
+      "name": "Corona de la sabiduría",
+      "rarity": 5,
+      "category": "Material de talento de personaje",
+      "sourceHints": [
+        "Recompensa de evento de tiempo limitado"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/crownofinsight.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112002",
+      "kind": "material",
+      "name": "Condensado de Slime",
+      "rarity": 1,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Slimes",
+        "Canjear Polvo estelar"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/slimecondensate.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112003",
+      "kind": "material",
+      "name": "Babas de Slime",
+      "rarity": 2,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Slimes (Niv. 40+)",
+        "Canjear Polvo estelar",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/slimesecretions.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112004",
+      "kind": "material",
+      "name": "Esencia de Slime",
+      "rarity": 3,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Slimes (Niv. 60+)",
+        "Canjear Polvo estelar: sintetizar tras canjear",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/slimeconcentrate.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112008",
+      "kind": "material",
+      "name": "Pergamino guía",
+      "rarity": 1,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Derrotar Samachurls",
+        "Canjear Polvo estelar"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/diviningscroll.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112009",
+      "kind": "material",
+      "name": "Pergamino hechizado",
+      "rarity": 2,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Samachurls (Niv. 40+)",
+        "Canjear Polvo estelar",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/sealedscroll.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112010",
+      "kind": "material",
+      "name": "Pergamino maldito",
+      "rarity": 3,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Samachurls (Niv. 60+)",
+        "Canjear Polvo estelar: sintetizar tras canjear",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/forbiddencursescroll.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112011",
+      "kind": "material",
+      "name": "Flecha robusta",
+      "rarity": 1,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Hilichurls Ballesteros",
+        "Canjear Polvo estelar"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/firmarrowhead.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112012",
+      "kind": "material",
+      "name": "Flecha afilada",
+      "rarity": 2,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Hilichurls Ballesteros (Niv. 40+)",
+        "Canjear Polvo estelar",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/sharparrowhead.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112013",
+      "kind": "material",
+      "name": "Flecha veterana",
+      "rarity": 3,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Hilichurls Ballesteros (Niv. 60+)",
+        "Canjear Polvo estelar: sintetizar tras canjear",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/weatheredarrowhead.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112020",
+      "kind": "material",
+      "name": "Rama seca de líneas ley",
+      "rarity": 2,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Magos del Abismo",
+        "Canjear Polvo estelar"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/deadleylinebranch.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112021",
+      "kind": "material",
+      "name": "Hojas secas de líneas ley",
+      "rarity": 3,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Magos del Abismo (Niv. 40+)",
+        "Canjear Polvo estelar",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/deadleylineleaves.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112022",
+      "kind": "material",
+      "name": "Brotes de líneas ley",
+      "rarity": 4,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Magos del Abismo (Niv. 60+)",
+        "Canjear Polvo estelar: sintetizar tras canjear",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/leylinesprout.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112023",
+      "kind": "material",
+      "name": "Dispositivo del caos",
+      "rarity": 2,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Guardianes de las Ruinas",
+        "Obtenido de Cazadores de las Ruinas",
+        "Canjear Polvo estelar"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/chaosdevice.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112024",
+      "kind": "material",
+      "name": "Circuito del caos",
+      "rarity": 3,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Guardianes de las Ruinas (Niv. 40+)",
+        "Obtenido de Cazadores de las Ruinas (Niv. 40+)",
+        "Canjear Polvo estelar",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/chaoscircuit.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112025",
+      "kind": "material",
+      "name": "Caldera del caos",
+      "rarity": 4,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Guardianes de las Ruinas (Niv. 60+)",
+        "Obtenido de Cazadores de las Ruinas (Niv. 60+)",
+        "Canjear Polvo estelar: sintetizar tras canjear",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/chaoscore.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112035",
+      "kind": "material",
+      "name": "Insignia de cuervo de bronce",
+      "rarity": 1,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Ladrones de Tesoros",
+        "Canjear Polvo estelar"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/treasurehoarderinsignia.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112036",
+      "kind": "material",
+      "name": "Insignia de cuervo plateada",
+      "rarity": 2,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Ladrones de Tesoros (Niv. 40+)",
+        "Canjear Polvo estelar",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/silverraveninsignia.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112037",
+      "kind": "material",
+      "name": "Insignia de cuervo dorada",
+      "rarity": 3,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Ladrones de Tesoros (Niv. 60+)",
+        "Canjear Polvo estelar: sintetizar tras canjear",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/goldenraveninsignia.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112038",
+      "kind": "material",
+      "name": "Néctar de Megaflora",
+      "rarity": 1,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Megafloras",
+        "Canjear Polvo estelar"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/whopperflowernectar.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112039",
+      "kind": "material",
+      "name": "Néctar brillante",
+      "rarity": 2,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Megaflora (Niv. 40+)",
+        "Canjear Polvo estelar",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/shimmeringnectar.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:112040",
+      "kind": "material",
+      "name": "Néctar energético",
+      "rarity": 3,
+      "category": "Material de mejora de personaje y arma",
+      "sourceHints": [
+        "Obtenido de Megaflora (Niv. 60+)",
+        "Canjear Polvo estelar: sintetizar tras canjear",
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/energynectar.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:113002",
+      "kind": "material",
+      "name": "Prisma del relámpago",
+      "rarity": 4,
+      "category": "Material de mejora de personaje",
+      "sourceHints": [
+        "Obtenido de Hipóstasis Electro (Niv. 30+)"
+      ],
+      "activityIds": [
+        "activity:enemy:20040101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/lightningprism.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:113004",
+      "kind": "material",
+      "name": "Garra de Stormterror",
+      "rarity": 5,
+      "category": "Material de mejora de personaje",
+      "sourceHints": [
+        "Recompensa Reto de Stormterror (Niv. 70+)",
+        "Obtenido al realizar una conversión en la mesa de fabricación"
+      ],
+      "activityIds": [
+        "activity:enemy:29010101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/dvalinsclaw.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:113005",
+      "kind": "material",
+      "name": "Suspiro de Stormterror",
+      "rarity": 5,
+      "category": "Material de mejora de personaje",
+      "sourceHints": [
+        "Recompensa Reto de Stormterror (Niv. 70+)",
+        "Obtenido al realizar una conversión en la mesa de fabricación"
+      ],
+      "activityIds": [
+        "activity:enemy:29010101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/dvalinssigh.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:113008",
+      "kind": "material",
+      "name": "Alma de Boreas",
+      "rarity": 5,
+      "category": "Material de mejora de personaje",
+      "sourceHints": [
+        "Recompensa del reto del Lobo del Norte (Niv. 70+)",
+        "Obtenido al realizar una conversión en la mesa de fabricación"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/spiritlocketofboreas.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:113010",
+      "kind": "material",
+      "name": "Núcleo de escarcha",
+      "rarity": 4,
+      "category": "Material de mejora de personaje",
+      "sourceHints": [
+        "Obtenido de Regisvid Cryo (Niv. 30+)"
+      ],
+      "activityIds": [
+        "activity:enemy:26020101"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/hoarfrostcore.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:113011",
+      "kind": "material",
+      "name": "Semilla de fuego eterno",
+      "rarity": 4,
+      "category": "Material de mejora de personaje",
+      "sourceHints": [
+        "Obtenido de Regisvid Pyro (Niv. 30+)"
+      ],
+      "activityIds": [
+        "activity:enemy:26020201"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/everflameseed.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:114005",
+      "kind": "material",
+      "name": "Diente de leche de lobo boreal",
+      "rarity": 2,
+      "category": "Material de ascensión de arma",
+      "sourceHints": [
+        "Comprado en la Tienda de recuerdos de Mondstadt",
+        "Canjear en la Tienda de paquetes"
+      ],
+      "activityIds": [
+        "activity:domain:4320",
+        "activity:domain:4321",
+        "activity:domain:4322",
+        "activity:domain:4323"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/borealwolfsmilktooth.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:114006",
+      "kind": "material",
+      "name": "Diente roto de lobo boreal",
+      "rarity": 3,
+      "category": "Material de ascensión de arma",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4321",
+        "activity:domain:4322",
+        "activity:domain:4323"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/borealwolfscrackedtooth.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:114007",
+      "kind": "material",
+      "name": "Colmillo roto de lobo boreal",
+      "rarity": 4,
+      "category": "Material de ascensión de arma",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4322",
+        "activity:domain:4323"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/borealwolfsbrokenfang.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:114008",
+      "kind": "material",
+      "name": "Nostalgia del lobo boreal",
+      "rarity": 5,
+      "category": "Material de ascensión de arma",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4323"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/borealwolfsnostalgia.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:114009",
+      "kind": "material",
+      "name": "Grilletes de Diente de León",
+      "rarity": 2,
+      "category": "Material de ascensión de arma",
+      "sourceHints": [
+        "Comprado en la Tienda de recuerdos de Mondstadt",
+        "Canjear en la Tienda de paquetes"
+      ],
+      "activityIds": [
+        "activity:domain:4330",
+        "activity:domain:4331",
+        "activity:domain:4332",
+        "activity:domain:4333"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/fettersofthedandeliongladiator.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:114010",
+      "kind": "material",
+      "name": "Cadena de Diente de León",
+      "rarity": 3,
+      "category": "Material de ascensión de arma",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4331",
+        "activity:domain:4332",
+        "activity:domain:4333"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/chainsofthedandeliongladiator.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:114011",
+      "kind": "material",
+      "name": "Esposas de Diente de León",
+      "rarity": 4,
+      "category": "Material de ascensión de arma",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4332",
+        "activity:domain:4333"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/shacklesofthedandeliongladiator.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:114012",
+      "kind": "material",
+      "name": "Ideales de Diente de León",
+      "rarity": 5,
+      "category": "Material de ascensión de arma",
+      "sourceHints": [
+        "Cantidad sintetizable: {0}"
+      ],
+      "activityIds": [
+        "activity:domain:4333"
+      ],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/dreamofthedandeliongladiator.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "material:202",
+      "kind": "material",
+      "name": "Mora",
+      "rarity": 3,
+      "category": "Moneda común",
+      "sourceHints": [
+        "Recompensa de aventuras y expediciones",
+        "Tetetienda",
+        "Recompensa de Flores de riqueza"
+      ],
+      "activityIds": [],
+      "pendingFields": [],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/materials/mora.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "weapon:11302",
+      "kind": "weapon",
+      "name": "Espada del Alba",
+      "rarity": 3,
+      "weaponType": "Espada ligera",
+      "maxLevel": null,
+      "requirements": [
+        {
+          "kind": "ascension",
+          "stage": 1,
+          "materials": {
+            "material:202": 5000,
+            "material:114005": 2,
+            "material:112020": 2,
+            "material:112002": 1
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 2,
+          "materials": {
+            "material:202": 10000,
+            "material:114006": 2,
+            "material:112020": 8,
+            "material:112002": 5
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 3,
+          "materials": {
+            "material:202": 15000,
+            "material:114006": 4,
+            "material:112021": 4,
+            "material:112003": 4
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 4,
+          "materials": {
+            "material:202": 20000,
+            "material:114007": 2,
+            "material:112021": 8,
+            "material:112003": 6
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 5,
+          "materials": {
+            "material:202": 25000,
+            "material:114007": 4,
+            "material:112022": 6,
+            "material:112004": 4
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 6,
+          "materials": {
+            "material:202": 30000,
+            "material:114008": 3,
+            "material:112022": 12,
+            "material:112004": 8
+          }
+        }
+      ],
+      "experience": [],
+      "activityIds": [
+        "activity:domain:4320",
+        "activity:domain:4321",
+        "activity:domain:4322",
+        "activity:domain:4323"
+      ],
+      "pendingFields": [
+        "experience",
+        "levelCaps"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/weapons/harbingerofdawn.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "weapon:14302",
+      "kind": "weapon",
+      "name": "Cuentos de Cazadores de Dragones",
+      "rarity": 3,
+      "weaponType": "Catalizador",
+      "maxLevel": null,
+      "requirements": [
+        {
+          "kind": "ascension",
+          "stage": 1,
+          "materials": {
+            "material:202": 5000,
+            "material:114005": 2,
+            "material:112020": 2,
+            "material:112008": 1
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 2,
+          "materials": {
+            "material:202": 10000,
+            "material:114006": 2,
+            "material:112020": 8,
+            "material:112008": 5
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 3,
+          "materials": {
+            "material:202": 15000,
+            "material:114006": 4,
+            "material:112021": 4,
+            "material:112009": 4
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 4,
+          "materials": {
+            "material:202": 20000,
+            "material:114007": 2,
+            "material:112021": 8,
+            "material:112009": 6
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 5,
+          "materials": {
+            "material:202": 25000,
+            "material:114007": 4,
+            "material:112022": 6,
+            "material:112010": 4
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 6,
+          "materials": {
+            "material:202": 30000,
+            "material:114008": 3,
+            "material:112022": 12,
+            "material:112010": 8
+          }
+        }
+      ],
+      "experience": [],
+      "activityIds": [
+        "activity:domain:4320",
+        "activity:domain:4321",
+        "activity:domain:4322",
+        "activity:domain:4323"
+      ],
+      "pendingFields": [
+        "experience",
+        "levelCaps"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/weapons/thrillingtalesofdragonslayers.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    },
+    {
+      "id": "weapon:15401",
+      "kind": "weapon",
+      "name": "Arco de Favonius",
+      "rarity": 4,
+      "weaponType": "Arco",
+      "maxLevel": null,
+      "requirements": [
+        {
+          "kind": "ascension",
+          "stage": 1,
+          "materials": {
+            "material:202": 5000,
+            "material:114009": 3,
+            "material:112023": 3,
+            "material:112038": 2
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 2,
+          "materials": {
+            "material:202": 15000,
+            "material:114010": 3,
+            "material:112023": 12,
+            "material:112038": 8
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 3,
+          "materials": {
+            "material:202": 20000,
+            "material:114010": 6,
+            "material:112024": 6,
+            "material:112039": 6
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 4,
+          "materials": {
+            "material:202": 30000,
+            "material:114011": 3,
+            "material:112024": 12,
+            "material:112039": 9
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 5,
+          "materials": {
+            "material:202": 35000,
+            "material:114011": 6,
+            "material:112025": 9,
+            "material:112040": 6
+          }
+        },
+        {
+          "kind": "ascension",
+          "stage": 6,
+          "materials": {
+            "material:202": 45000,
+            "material:114012": 4,
+            "material:112025": 18,
+            "material:112040": 12
+          }
+        }
+      ],
+      "experience": [],
+      "activityIds": [
+        "activity:domain:4330",
+        "activity:domain:4331",
+        "activity:domain:4332",
+        "activity:domain:4333"
+      ],
+      "pendingFields": [
+        "experience",
+        "levelCaps"
+      ],
+      "provenance": {
+        "source": "https://raw.githubusercontent.com/theBowja/genshin-db/8e5badd60b5d894284ccc927a56c9683529d2592/src/data/Spanish/weapons/favoniuswarbow.json",
+        "revision": "8e5badd60b5d894284ccc927a56c9683529d2592",
+        "gameVersion": "7.2",
+        "verifiedAt": "2026-11-19",
+        "reliability": "verified",
+        "license": "MIT",
+        "method": "Revisión de campos factuales de genshin-db; no certificación de HoYoverse."
+      },
+      "additionalSources": []
+    }
+  ]
+}

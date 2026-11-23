@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,9 @@ import 'package:genshin_progress_planner/features/settings/domain/app_preference
 import 'package:genshin_progress_planner/features/settings/presentation/preferences_controller.dart';
 
 import 'support/memory_preferences_repository.dart';
+
+import 'package:genshin_progress_planner/features/catalog/domain/catalog.dart';
+import 'package:genshin_progress_planner/features/catalog/presentation/catalog_provider.dart';
 
 Future<ProviderContainer> mountApp(
   WidgetTester tester,
@@ -25,7 +30,14 @@ Future<ProviderContainer> mountApp(
   });
   final container = ProviderContainer(
     retry: (count, error) => null,
-    overrides: [preferencesRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      preferencesRepositoryProvider.overrideWithValue(repository),
+      catalogProvider.overrideWith(
+        (ref) async => CatalogBundle.parse(
+          File('assets/catalog/seed-v1.json').readAsStringSync(),
+        ),
+      ),
+    ],
   );
   addTearDown(container.dispose);
   await tester.pumpWidget(
@@ -51,6 +63,9 @@ void main() {
       await tester.pumpAndSettle();
       if (section == AppSection.settings) {
         expect(find.text('Apariencia'), findsOneWidget);
+      } else if (section == AppSection.characters ||
+          section == AppSection.weapons) {
+        expect(find.textContaining('Catálogo inicial'), findsOneWidget);
       } else {
         expect(find.text('Este espacio está en preparación'), findsOneWidget);
       }

@@ -12,16 +12,59 @@ class PreferenceEntries extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [PreferenceEntries])
+class CatalogVersions extends Table {
+  TextColumn get version => text()();
+  IntColumn get sequence => integer().unique()();
+  TextColumn get payload => text()();
+  TextColumn get importedAt => text()();
+  @override
+  Set<Column<Object>> get primaryKey => {version};
+}
+
+class CatalogRecords extends Table {
+  TextColumn get catalogVersion =>
+      text().references(CatalogVersions, #version)();
+  TextColumn get recordId => text()();
+  TextColumn get kind => text()();
+  TextColumn get name => text()();
+  @override
+  Set<Column<Object>> get primaryKey => {catalogVersion, recordId};
+}
+
+class CatalogSelection extends Table {
+  // Drift evaluates this reference in the generated table subclass.
+  // ignore: recursive_getters
+  IntColumn get id => integer().check(id.equals(1))();
+  TextColumn get catalogVersion =>
+      text().references(CatalogVersions, #version)();
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DriftDatabase(
+  tables: [
+    PreferenceEntries,
+    CatalogVersions,
+    CatalogRecords,
+    CatalogSelection,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
-      throw StateError('No existe una migración de $from a $to.');
+      if (from != 1 || to != 2) {
+        throw StateError('No existe una migración de $from a $to.');
+      }
+      await transaction(() async {
+        await migrator.createTable(catalogVersions);
+        await migrator.createTable(catalogRecords);
+        await migrator.createTable(catalogSelection);
+      });
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

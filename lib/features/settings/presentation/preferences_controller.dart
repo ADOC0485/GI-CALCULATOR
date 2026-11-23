@@ -1,15 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/database/database_connection.dart';
+import '../../../data/database/database_provider.dart';
 import '../data/drift_preferences_repository.dart';
 import '../domain/app_preferences.dart';
 import '../domain/preferences_repository.dart';
 
 final preferencesRepositoryProvider = Provider<PreferencesRepository>((ref) {
-  final database = openAppDatabase();
-  ref.onDispose(() => unawaited(database.close()));
+  final database = ref.watch(databaseProvider);
   return DriftPreferencesRepository(database);
 });
 

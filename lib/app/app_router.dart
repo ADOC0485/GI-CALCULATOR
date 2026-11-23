@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../core/presentation/pending_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/settings/presentation/settings_page.dart';
+import '../features/catalog/domain/catalog.dart';
+import '../features/catalog/presentation/catalog_page.dart';
 import 'app_shell.dart';
 import 'navigation.dart';
 
@@ -23,6 +25,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               builder: (context, state) => switch (section) {
                 AppSection.dashboard => const DashboardPage(),
                 AppSection.settings => const SettingsPage(),
+                AppSection.characters => const CatalogPage(
+                  key: ValueKey('characters'),
+                  initialKind: CatalogKind.character,
+                ),
+                AppSection.weapons => const CatalogPage(
+                  key: ValueKey('weapons'),
+                  initialKind: CatalogKind.weapon,
+                ),
                 _ => PendingPage(section: section),
               },
             ),
