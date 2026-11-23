@@ -672,9 +672,11 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
         ]),
         _section(context, 'Consejos', [
           const Text(
-            '• Tetera de la Serenidad: en la Tienda del reino puedes cambiar '
-            'moneda del reino por Ingenio del héroe, Mineral de refinamiento '
-            'místico y Resina transitoria (60 de resina). Revísala cada semana.',
+            '• Recuerda que en la Tetera de la Serenidad puedes conseguir Mora '
+            'y libros de EXP sin gastar resina: reclama cada día la moneda del '
+            'reino y cámbiala en la tienda de Tubby (se desbloquea al subir el '
+            'nivel de confianza). Ahí también hay Resina transitoria. Las '
+            'compras tienen límite semanal, así que revísala cada semana.',
           ),
           const Text(
             '• Las líneas ley son un promedio: el reparto exacto de libros varía en cada recompensa.',
