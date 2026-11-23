@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/presentation/calculator_fields.dart';
 import '../../catalog/domain/catalog.dart';
 import '../data/scenario_repository.dart';
+import '../domain/inventory_plan.dart';
 import '../domain/progression_calculator.dart';
 
 final progressionRulesProvider = FutureProvider(
@@ -56,6 +57,76 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
   bool talentsOn = false;
   bool busy = false;
   String? notice;
+  final books = List.generate(3, (_) => TextEditingController());
+  final moraOwned = TextEditingController();
+  final owned = <String, TextEditingController>{};
+  final expRate = TextEditingController(
+    text: '${const LeyLineRates().experience}',
+  );
+  final moraRate = TextEditingController(text: '${const LeyLineRates().mora}');
+
+  static const inventoryKey = 'inventario';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInventory();
+  }
+
+  /// Inventory is shared by every character and weapon on this device.
+  Future<void> _loadInventory() async {
+    try {
+      final stored = await ref
+          .read(scenarioRepositoryProvider)
+          .load(inventoryKey);
+      if (!mounted || stored == null) return;
+      setState(() => _restoreInventory(stored));
+    } catch (_) {
+      // A missing or unreadable inventory just starts empty.
+    }
+  }
+
+  TextEditingController _owned(String id) =>
+      owned.putIfAbsent(id, TextEditingController.new);
+
+  String get _booksKey => isCharacter ? 'booksCharacter' : 'booksWeapon';
+
+  Map<String, Object?> _inventory() => {
+    'schema': 1,
+    'materials': {
+      for (final e in owned.entries)
+        if (e.value.text.trim().isNotEmpty) e.key: e.value.text.trim(),
+    },
+    _booksKey: [for (final b in books) b.text.trim()],
+    'mora': moraOwned.text.trim(),
+    'expRate': expRate.text.trim(),
+    'moraRate': moraRate.text.trim(),
+  };
+
+  void _restoreInventory(Map<String, dynamic> values) {
+    final materials = values['materials'];
+    if (materials is Map) {
+      materials.forEach((id, v) {
+        if (id is String && v is String) _owned(id).text = v;
+      });
+    }
+    final stored = values[_booksKey];
+    if (stored is List) {
+      for (var i = 0; i < books.length && i < stored.length; i++) {
+        if (stored[i] is String) books[i].text = stored[i] as String;
+      }
+    }
+    for (final (key, controller) in [
+      ('mora', moraOwned),
+      ('expRate', expRate),
+      ('moraRate', moraRate),
+    ]) {
+      final v = values[key];
+      if (v is String && v.isNotEmpty) controller.text = v;
+    }
+  }
+
+  int _count(TextEditingController c) => int.tryParse(c.text.trim()) ?? 0;
 
   bool get isCharacter => widget.record.kind == CatalogKind.character;
 
@@ -63,6 +134,9 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
   void dispose() {
     now.dispose();
     goal.dispose();
+    for (final c in [...books, moraOwned, expRate, moraRate, ...owned.values]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -134,6 +208,8 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
           'catalogVersion': widget.bundle.version,
           'fields': _fields(),
         });
+        final previous = await repo.load(inventoryKey) ?? {};
+        await repo.save(inventoryKey, {...previous, ..._inventory()});
         notice = 'Escenario guardado en este equipo.';
       } else {
         final stored = await repo.load(key);
@@ -307,6 +383,233 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
     );
   }
 
+  Widget _numberField(
+    TextEditingController c,
+    String label, {
+    double width = 130,
+    Key? key,
+  }) => SizedBox(
+    width: width,
+    child: TextField(
+      key: key,
+      controller: c,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: '0',
+        isDense: true,
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: (_) => changed(),
+    ),
+  );
+
+  static String _n(int v) => v.toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+$)'),
+    (m) => '${m[1]} ',
+  );
+
+  Widget _section(BuildContext context, String title, List<Widget> children) =>
+      SizedBox(
+        width: double.infinity,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 12),
+                ...children,
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget _results(BuildContext context, ProgressionResult result) {
+    final theme = Theme.of(context);
+    final names = {for (final r in widget.bundle.records) r.id: r.name};
+    final items = isCharacter ? characterExpItems : weaponExpItems;
+    InventoryPlan? plan;
+    String? planError;
+    try {
+      plan = planInventory(
+        bundle: widget.bundle,
+        record: widget.record,
+        result: result,
+        ownedBooks: [for (final b in books) _count(b)],
+        ownedMaterials: {
+          for (final id in result.materials.keys) id: _count(_owned(id)),
+        },
+        ownedMora: _count(moraOwned),
+        rates: LeyLineRates(
+          experience: _count(expRate),
+          mora: _count(moraRate),
+        ),
+      );
+    } on CalculationException catch (e) {
+      planError = e.message;
+    }
+    final good = TextStyle(color: theme.colorScheme.primary);
+    final bad = TextStyle(color: theme.colorScheme.error);
+    final resin = LeyLineRates.resinPerRun;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (result.materials.isEmpty && result.experience == 0)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Text('Tu progreso ya coincide con el objetivo.'),
+          ),
+        _section(
+          context,
+          isCharacter ? 'Nivel · libros de EXP' : 'Nivel · minerales de mejora',
+          [
+            Text(
+              'EXP necesaria: ${_n(result.experience)}',
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              isCharacter
+                  ? '¿Cuántos libros tienes? Déjalo vacío si no tienes.'
+                  : '¿Cuántos minerales tienes? Déjalo vacío si no tienes.',
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                for (var i = 0; i < items.length; i++)
+                  _numberField(
+                    books[i],
+                    items[i].label,
+                    width: 230,
+                    key: ValueKey('book-$i'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (plan != null) ...[
+              Text(
+                'Con lo que tienes: ${_n(plan.expOwned)} de EXP · llegas a nivel ${plan.levelWithOwned}',
+              ),
+              if (plan.expMissing == 0)
+                Text('¡Te alcanza para todo el nivel!', style: good)
+              else ...[
+                Text('Te faltan ${_n(plan.expMissing)} de EXP:', style: bad),
+                for (final e in plan.booksToFarm.entries)
+                  Text('• ${e.key}: ${_n(e.value)}'),
+                if (isCharacter)
+                  Text(
+                    '≈ ${plan.expRuns} líneas ley de EXP (${plan.expRuns * resin} de resina)',
+                    style: theme.textTheme.titleSmall,
+                  ),
+              ],
+            ],
+          ],
+        ),
+        _section(context, 'Mora', [
+          _numberField(
+            moraOwned,
+            'Mora que tienes',
+            width: 230,
+            key: const ValueKey('mora-owned'),
+          ),
+          const SizedBox(height: 12),
+          if (plan != null) ...[
+            Text(
+              'Necesitas ${_n(plan.moraTotal)}: subir nivel ${_n(result.levelingMora)}'
+              ', ascensiones${talentsOn && isCharacter ? ' y talentos' : ''}'
+              '${plan.craftingMora > 0 ? ', más ${_n(plan.craftingMora)} para convertir materiales' : ''}.',
+            ),
+            if (plan.moraMissing == 0)
+              Text('¡Te alcanza la Mora!', style: good)
+            else
+              Text(
+                'Te faltan ${_n(plan.moraMissing)} · ≈ ${plan.moraRuns} líneas ley de Mora (${plan.moraRuns * resin} de resina)',
+                style: bad,
+              ),
+          ],
+        ]),
+        _section(context, 'Materiales', [
+          const Text(
+            'Pon cuántos tienes de cada uno. Si te sobran del nivel inferior, '
+            'se usan convirtiendo 3 en 1, como en la alquimia.',
+          ),
+          const SizedBox(height: 12),
+          if (plan != null)
+            for (final line in plan.lines)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 6,
+                  children: [
+                    SizedBox(width: 230, child: Text(names[line.id] ?? line.id)),
+                    SizedBox(
+                      width: 110,
+                      child: Text('Necesitas ${_n(line.needed)}'),
+                    ),
+                    _numberField(
+                      _owned(line.id),
+                      'Tienes',
+                      width: 100,
+                      key: ValueKey('owned-${line.id}'),
+                    ),
+                    if (line.missing == 0)
+                      Text(
+                        line.crafted > 0
+                            ? 'Listo (${line.crafted} convirtiendo)'
+                            : 'Listo',
+                        style: good,
+                      )
+                    else
+                      Text(
+                        'Faltan ${_n(line.missing)}'
+                        '${line.crafted > 0 ? ' (ya cuenta ${line.crafted} convirtiendo)' : ''}',
+                        style: bad,
+                      ),
+                  ],
+                ),
+              ),
+        ]),
+        ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          title: const Text('Ajustar líneas ley a tu nivel de mundo'),
+          children: [
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Promedio por cada 20 de resina. Por defecto: nivel de mundo 6–8 '
+                '(≈ 6 Ingenios del héroe = 120 000 de EXP). Cámbialo si tu mundo es menor.',
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _numberField(expRate, 'EXP por línea ley', width: 200),
+                _numberField(moraRate, 'Mora por línea ley', width: 200),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+        if (planError != null) Text(planError, style: bad),
+        const SizedBox(height: 8),
+        Text(
+          'Catálogo ${widget.bundle.version}. Fuentes comunitarias; las líneas ley son un promedio aproximado.',
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final rulesValue = ref.watch(progressionRulesProvider);
@@ -326,7 +629,6 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
         error = e.message;
       }
     }
-    final names = {for (final r in widget.bundle.records) r.id: r.name};
     return AlertDialog(
       title: Text('Calcular · ${widget.record.name}'),
       content: SizedBox(
@@ -371,44 +673,7 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
                   error,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
-              if (result != null) ...[
-                Text(
-                  'EXP necesaria: ${result.experience}',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                Text(
-                  'Mora de mejora: ${result.levelingMora} · incluida en el total de Mora de abajo.',
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  isCharacter
-                      ? 'Libros de EXP (redondeados en cada tope de ascensión):'
-                      : 'Minerales de refinamiento (redondeados en cada tope de ascensión; sin usar armas como alimento):',
-                ),
-                for (final entry in result.expItems.entries)
-                  Text('${entry.key}: ${entry.value}'),
-                Text('EXP que sobra: ${result.surplus}'),
-                const SizedBox(height: 16),
-                Text(
-                  talentsOn && isCharacter
-                      ? 'Materiales totales · ascensión + talentos + Mora'
-                      : 'Materiales totales · ascensión + Mora',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                if (result.materials.isEmpty)
-                  const Text('Tu progreso ya coincide con el objetivo.'),
-                for (final entry in result.materials.entries)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      '${names[entry.key] ?? entry.key}: ${entry.value}',
-                    ),
-                  ),
-                const SizedBox(height: 16),
-                Text(
-                  'Catálogo ${widget.bundle.version}. Fuentes comunitarias; sin descontar inventario.',
-                ),
-              ],
+              if (result != null) _results(context, result),
               if (notice != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),

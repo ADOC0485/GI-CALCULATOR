@@ -30,5 +30,6 @@ flutter:
   assets:
     - assets/catalog/seed-v1.json
     - assets/catalog/LICENSE-genshin-db.txt
+    - assets/catalog/nombres-es.json
     - assets/rules/progression-v1.json
     - assets/rules/LICENSE-paimon-moe.txt

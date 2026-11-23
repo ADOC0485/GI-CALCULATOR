@@ -68,10 +68,26 @@ class ProgressionResult {
     this.levelingMora,
     this.materials,
     this.expItems,
-    this.surplus,
-  );
-  final int experience, levelingMora, surplus;
+    this.surplus, {
+    List<int> xpTable = const [0],
+    this.fromLevel = 1,
+    this.toLevel = 1,
+    int startExperience = 0,
+  }) : _xp = xpTable,
+       _start = startExperience;
+  final int experience, levelingMora, surplus, fromLevel, toLevel;
   final Map<String, int> materials, expItems;
+  final List<int> _xp;
+  final int _start;
+
+  /// Level reached by feeding [exp] EXP, ascending along the way.
+  int levelWith(int exp) {
+    var level = fromLevel;
+    while (level < toLevel && _xp[level] <= _start + exp) {
+      level++;
+    }
+    return level;
+  }
 }
 
 /// Total EXP needed to reach each level, indexed by level - 1.
@@ -234,5 +250,9 @@ ProgressionResult calculateProgression(
     Map.unmodifiable(materials),
     Map.unmodifiable(items),
     supplied - needed,
+    xpTable: xp,
+    fromLevel: from.level,
+    toLevel: to.level,
+    startExperience: xp[from.level - 1] + from.experience,
   );
 }

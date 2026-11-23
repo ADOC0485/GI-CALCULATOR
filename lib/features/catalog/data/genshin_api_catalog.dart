@@ -8,6 +8,12 @@ const genshinApiRepository = 'devesh-anand/genshin-api';
 /// Game ID of Mora, shared with the seed catalog so totals stay comparable.
 const moraId = 'material:202';
 
+/// Bumped whenever the conversion output changes for the same upstream commit.
+const converterRevision = 2;
+
+String genshinApiVersion(String revision) =>
+    'genshin-api-${revision.substring(0, 12)}-c$converterRevision';
+
 const _weaponTypes = {
   'Sword': 'Espada ligera',
   'Claymore': 'Mandoble',
@@ -77,6 +83,7 @@ CatalogBundle buildGenshinApiCatalog({
   required Map<String, Object?> files,
   required String revision,
   required DateTime committedAt,
+  Map<String, String> spanishNames = const {},
 }) {
   if (!RegExp(r'^[0-9a-f]{40}$').hasMatch(revision)) {
     throw const GenshinApiFormatException('revisión de commit inválida');
@@ -143,6 +150,7 @@ CatalogBundle buildGenshinApiCatalog({
   final materialIds = <String, String>{};
   final materials = <String, Map<String, Object?>>{};
   final activities = <String, Map<String, Object?>>{};
+  final crafts = <String, Map<String, dynamic>>{};
   for (final entry in folder('materials')) {
     final json = entry.value;
     final slug = entry.key.substring('materials/'.length, entry.key.length - 5);
@@ -157,14 +165,15 @@ CatalogBundle buildGenshinApiCatalog({
     if (from is Map<String, dynamic>) {
       switch (from['type']) {
         case 'domain':
-          final name = from['name'];
-          if (name is String && name.isNotEmpty) {
+          final english = from['name'];
+          if (english is String && english.isNotEmpty) {
+            final name = spanishNames['domain:$english'] ?? english;
             hints.add('Dominio: $name');
             final days = [
               for (final d in _listOrEmpty(from['days']))
                 if (_weekdays[d] != null) _weekdays[d]!,
             ]..sort();
-            final activityId = 'activity:domain:${_slugify(name)}';
+            final activityId = 'activity:domain:${_slugify(english)}';
             final activity = activities.putIfAbsent(
               activityId,
               () => {
@@ -211,10 +220,13 @@ CatalogBundle buildGenshinApiCatalog({
     if (droppedBy.isNotEmpty) {
       hints.add('Lo sueltan: ${droppedBy.map(_humanize).join(', ')}');
     }
+    final craft = json['craft'];
+    if (craft is Map<String, dynamic>) crafts[id] = craft;
     materials[id] = {
       'id': id,
       'kind': 'material',
-      'name': json['name'],
+      'name': spanishNames[id] ?? json['name'],
+      if (json['exp'] is int) 'experience': json['exp'],
       'rarity': validRarity ? rarity : null,
       'category':
           _categories[json['category']] ??
@@ -228,6 +240,16 @@ CatalogBundle buildGenshinApiCatalog({
       'additionalSources': <String>[],
     };
   }
+  crafts.forEach((id, craft) {
+    final from = materialIds[craft['from']];
+    if (from != null && craft['quantity'] is int) {
+      materials[id]!['craft'] = {
+        'from': from,
+        'quantity': craft['quantity'],
+        'mora': craft['mora'] is int ? craft['mora'] : 0,
+      };
+    }
+  });
   materials[moraId] ??= {
     'id': moraId,
     'kind': 'material',
@@ -307,10 +329,14 @@ CatalogBundle buildGenshinApiCatalog({
     }
     final vision = json['vision'];
     final nation = json['nation'];
+    final gameId = 'character:${json['id']}';
+    final baseName = spanishNames[gameId] ?? json['name'];
     characters.add({
       'id': id,
       'kind': 'character',
-      'name': json['name'],
+      'name': id == gameId || vision is! String
+          ? baseName
+          : '$baseName ($vision)',
       'rarity': json['rarity'],
       'element': vision is String && vision.isNotEmpty ? vision : 'Ninguno',
       'region': nation is String && nation.isNotEmpty ? nation : null,
@@ -340,7 +366,7 @@ CatalogBundle buildGenshinApiCatalog({
     weapons.add({
       'id': 'weapon:${json['id']}',
       'kind': 'weapon',
-      'name': json['name'],
+      'name': spanishNames['weapon:${json['id']}'] ?? json['name'],
       'rarity': rarity,
       'weaponType': _weaponTypes[json['type']] ?? json['type'],
       'maxLevel': weaponMaxLevels['$rarity'],
@@ -363,9 +389,11 @@ CatalogBundle buildGenshinApiCatalog({
 
   final catalog = {
     'schemaVersion': 2,
-    'version': 'genshin-api-${revision.substring(0, 12)}',
-    // Commit time keeps later upstream revisions ordered after earlier ones.
-    'sequence': committedAt.toUtc().millisecondsSinceEpoch ~/ 1000,
+    'version': genshinApiVersion(revision),
+    // Commit time keeps later upstream revisions ordered after earlier ones;
+    // the converter revision lets a new app build replace the same commit.
+    'sequence':
+        committedAt.toUtc().millisecondsSinceEpoch ~/ 1000 + converterRevision,
     'gameVersion': gameVersion,
     'createdAt': day,
     'versionSource': 'https://github.com/$genshinApiRepository/commit/$revision',

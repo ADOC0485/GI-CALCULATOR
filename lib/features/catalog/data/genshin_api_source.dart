@@ -95,19 +95,26 @@ class GenshinApiSource {
     }
   }
 
-  Future<CatalogBundle> download(UpstreamRevision revision) async {
+  Future<CatalogBundle> download(
+    UpstreamRevision revision, {
+    Map<String, String> spanishNames = const {},
+  }) async {
     final bytes = await _get(
       Uri.https(
         'codeload.github.com',
         '/$genshinApiRepository/zip/${revision.sha}',
       ),
     );
-    return catalogFromArchive(bytes, revision);
+    return catalogFromArchive(bytes, revision, spanishNames: spanishNames);
   }
 }
 
 /// Reads the `data/` folder of a GitHub zip archive and converts it.
-CatalogBundle catalogFromArchive(List<int> bytes, UpstreamRevision revision) {
+CatalogBundle catalogFromArchive(
+  List<int> bytes,
+  UpstreamRevision revision, {
+  Map<String, String> spanishNames = const {},
+}) {
   final Archive archive;
   try {
     archive = ZipDecoder().decodeBytes(bytes);
@@ -130,5 +137,6 @@ CatalogBundle catalogFromArchive(List<int> bytes, UpstreamRevision revision) {
     files: files,
     revision: revision.sha,
     committedAt: revision.committedAt,
+    spanishNames: spanishNames,
   );
 }

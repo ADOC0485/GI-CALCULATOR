@@ -141,11 +141,11 @@ void main() {
         width: 800,
       );
       await tester.scrollUntilVisible(
-        find.text('EXP necesaria: 8362650'),
+        find.text('EXP necesaria: 8 362 650'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('EXP necesaria: 8362650'), findsOneWidget);
+      expect(find.text('EXP necesaria: 8 362 650'), findsOneWidget);
       // No partial EXP field: the game does not show it.
       expect(find.textContaining('EXP parcial'), findsNothing);
       await tester.scrollUntilVisible(

@@ -167,10 +167,21 @@ class ProgressionData {
   final String? calculationProfile;
 }
 
+/// Alchemy recipe: [quantity] of [fromId] plus [mora] make one of this item.
+class CraftRecipe {
+  const CraftRecipe(this.fromId, this.quantity, this.mora);
+  final String fromId;
+  final int quantity, mora;
+}
+
 class MaterialData {
-  MaterialData._(this.category, this.sourceHints);
+  MaterialData._(this.category, this.sourceHints, this.craft, this.experience);
   final String category;
   final List<String> sourceHints;
+  final CraftRecipe? craft;
+
+  /// EXP granted by an EXP book or enhancement ore.
+  final int? experience;
 }
 
 class ActivityData {
@@ -325,9 +336,22 @@ class CatalogRecord {
         json['calculationProfile'] == null ? null : _string(json['calculationProfile'], id),
       );
     } else if (kind == CatalogKind.material) {
+      final craft = json['craft'] == null
+          ? null
+          : _object(json['craft'], '$id.craft');
       material = MaterialData._(
         _string(json['category'], id),
         _strings(json['sourceHints'], id),
+        craft == null
+            ? null
+            : CraftRecipe(
+                _string(craft['from'], '$id.craft.from'),
+                _integer(craft['quantity'], '$id.craft.quantity', 1, 1000),
+                _integer(craft['mora'], '$id.craft.mora', 0, 1000000),
+              ),
+        json['experience'] == null
+            ? null
+            : _integer(json['experience'], '$id.experience', 1, 1000000),
       );
     } else {
       final type = _string(json['activityType'], id);
@@ -466,6 +490,8 @@ class CatalogBundle {
       for (final id in record.activity?.rewards ?? <String>[]) {
         reference(id, CatalogKind.material);
       }
+      final craft = record.material?.craft;
+      if (craft != null) reference(craft.fromId, CatalogKind.material);
     }
     return CatalogBundle._(
       version,
