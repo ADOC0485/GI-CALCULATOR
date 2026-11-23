@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/presentation/page_frame.dart';
-import '../../catalog/domain/catalog.dart';
 import '../../catalog/presentation/catalog_provider.dart';
 import '../../progression/domain/inventory_plan.dart';
 import '../../progression/domain/progression_calculator.dart';
@@ -533,81 +532,6 @@ class _BuildPageState extends ConsumerState<BuildPage> {
           ],
         ),
       ],
-    );
-  }
-}
-
-/// List of builds on the home page.
-class BuildsCard extends ConsumerWidget {
-  const BuildsCard({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final builds = ref.watch(buildsProvider);
-    final bundle = ref.watch(catalogProvider).asData?.value;
-    final byId = {for (final r in bundle?.records ?? <CatalogRecord>[]) r.id: r};
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.flag_outlined, color: theme.colorScheme.primary),
-                const SizedBox(width: 12),
-                Expanded(child: Text('Tus builds', style: theme.textTheme.titleLarge)),
-                FilledButton.icon(
-                  key: const ValueKey('add-build'),
-                  onPressed: bundle == null
-                      ? null
-                      : () async {
-                          final created = await showDialog<GenshinBuild>(
-                            context: context,
-                            builder: (_) => BuildEditorDialog(bundle: bundle),
-                          );
-                          if (created != null && context.mounted) {
-                            context.go('/build/${created.id}');
-                          }
-                        },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Añadir build'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            builds.when(
-              loading: () => const LinearProgressIndicator(),
-              error: (_, _) => const Text('No se pudieron cargar tus builds.'),
-              data: (list) => list.isEmpty
-                  ? const Text(
-                      'Aún no tienes builds. Añade un personaje con su arma y te diremos '
-                      'qué te falta y cómo repartir la resina cada día.',
-                    )
-                  : Column(
-                      children: [
-                        for (final b in list)
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: materialIcon(byId[b.characterId]?.image, size: 40),
-                            title: Text(
-                              '${byId[b.characterId]?.name ?? b.characterId}'
-                              '${b.weaponId == null ? '' : ' + ${byId[b.weaponId]?.name ?? b.weaponId}'}',
-                            ),
-                            subtitle: Text(
-                              'Nivel ${b.characterNow.level} → ${b.characterGoal.level}'
-                              '${b.talentsOn ? ' · Talentos ${b.characterNow.talents.join('/')} → ${b.characterGoal.talents.join('/')}' : ''}',
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () => context.go('/build/${b.id}'),
-                          ),
-                      ],
-                    ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

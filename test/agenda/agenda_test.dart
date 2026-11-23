@@ -95,6 +95,39 @@ void main() {
     }
   }, skip: skip);
 
+  test('Progress is the share of material items already owned', () {
+    BuildProgress progress(Inventory inventory) => planAgenda(
+      bundle: bundle,
+      rules: rules,
+      builds: [full('a', 'Mavuika')],
+      inventory: inventory,
+      start: monday,
+    ).progress['a']!;
+    final empty = progress(const Inventory());
+    expect(empty.percent, 0);
+    expect(empty.needed, greaterThan(0));
+    // Owning every material needed for level and talents means 100 %.
+    final all = <String, int>{};
+    final phases = buildNeeds(
+      bundle: bundle,
+      rules: rules,
+      build: full('a', 'Mavuika'),
+      inventory: const Inventory(),
+    );
+    for (final p in phases) {
+      for (final l in p.plan.lines) {
+        all.update(l.id, (v) => v + l.needed, ifAbsent: () => l.needed);
+      }
+    }
+    final owned = progress(Inventory(materials: all));
+    expect(owned.percent, 100);
+    expect(owned.expMissing, greaterThan(0)); // EXP and Mora are shown apart
+    // Half of one material gives a value strictly between both.
+    final some = progress(Inventory(materials: {all.keys.first: all.values.first}));
+    expect(some.fraction, greaterThan(0));
+    expect(some.fraction, lessThan(1));
+  }, skip: skip);
+
   test('What you own goes to the first build that needs it', () {
     final pool = InventoryPool(const Inventory(mora: 3000000));
     final a = buildNeedsFromPool(

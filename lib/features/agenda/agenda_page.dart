@@ -17,11 +17,25 @@ import '../progression/presentation/progression_dialog.dart'
     show progressionRulesProvider;
 
 /// Every build planned together: one resin budget, builds in list order.
+/// How much of a build is already covered by the inventory.
+class BuildProgress {
+  const BuildProgress(this.have, this.needed, this.expMissing, this.moraMissing);
+
+  /// Material items owned (or crafted from spares) out of those needed.
+  final int have, needed;
+  final int expMissing, moraMissing;
+  double get fraction => needed == 0 ? 1 : have / needed;
+  int get percent => (fraction * 100).floor();
+}
+
 class AgendaPlan {
-  const AgendaPlan(this.schedule, this.free, this.finishByBuild);
+  const AgendaPlan(this.schedule, this.free, this.finishByBuild, this.progress);
   final ResinSchedule schedule;
   final Map<String, List<FreeTask>> free;
   final Map<String, DateTime?> finishByBuild;
+
+  /// Progress of each build by its id, with the inventory shared in order.
+  final Map<String, BuildProgress> progress;
 }
 
 AgendaPlan planAgenda({
@@ -39,6 +53,7 @@ AgendaPlan planAgenda({
   final tasks = <FarmTask>[];
   final free = <String, List<FreeTask>>{};
   final names = <String>[];
+  final progress = <String, BuildProgress>{};
   for (final (i, build) in builds.indexed) {
     final name = byId[build.characterId]?.name ?? build.characterId;
     names.add(name);
@@ -48,6 +63,16 @@ AgendaPlan planAgenda({
       build: build,
       pool: pool,
     );
+    var have = 0, needed = 0, exp = 0, mora = 0;
+    for (final p in phases) {
+      for (final line in p.plan.lines) {
+        needed += line.needed;
+        have += line.needed - line.missing;
+      }
+      exp += p.plan.expMissing;
+      mora += p.plan.moraMissing;
+    }
+    progress[build.id] = BuildProgress(have, needed, exp, mora);
     final farm = farmTasks(
       bundle: bundle,
       phases: phases,
@@ -77,7 +102,7 @@ AgendaPlan planAgenda({
           .date;
     }
   }
-  return AgendaPlan(schedule, free, finish);
+  return AgendaPlan(schedule, free, finish, progress);
 }
 
 class AgendaPage extends ConsumerStatefulWidget {
