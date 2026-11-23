@@ -15,6 +15,7 @@ import 'package:genshin_progress_planner/features/builds/data/build_repository.d
 import 'package:genshin_progress_planner/features/builds/domain/build.dart';
 import 'package:genshin_progress_planner/features/catalog/domain/catalog.dart';
 import 'package:genshin_progress_planner/features/profiles/profile.dart';
+import 'package:genshin_progress_planner/features/updates/app_update.dart';
 import 'package:genshin_progress_planner/features/catalog/presentation/catalog_provider.dart';
 
 Future<ProviderContainer> mountApp(
@@ -37,6 +38,7 @@ Future<ProviderContainer> mountApp(
       preferencesRepositoryProvider.overrideWithValue(repository),
       buildsProvider.overrideWith((ref) async => []),
       profilesProvider.overrideWith(_FixedProfiles.new),
+      latestReleaseProvider.overrideWith((ref) async => null),
       inventoryProvider.overrideWith((ref) async => const Inventory()),
       historyProvider.overrideWith((ref) async => []),
       buildRepositoryProvider.overrideWithValue(_MemoryBuilds()),

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/progression/data/scenario_repository.dart';
 import '../features/profiles/profile.dart';
 import '../features/resin/resin_bar.dart';
+import '../features/updates/update_widgets.dart';
 import 'navigation.dart';
 
 class AppShell extends ConsumerWidget {
@@ -117,6 +118,7 @@ class AppShell extends ConsumerWidget {
                     key: ValueKey('profile-$profileId-$server'),
                     children: [
                       const ResinBar(),
+                      const UpdateBanner(),
                       Expanded(child: child),
                     ],
                   ),
