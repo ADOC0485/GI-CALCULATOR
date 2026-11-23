@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../profiles/profiles_card.dart';
 import 'resin_state.dart';
 
 String _clock(Duration d) {
@@ -40,7 +41,15 @@ class _ResinBarState extends ConsumerState<ResinBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final resin = ref.watch(resinProvider).asData?.value;
-    if (resin == null) return const SizedBox(height: 8);
+    if (resin == null) {
+      return const Align(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: ProfileSwitcher(),
+        ),
+      );
+    }
     final now = ref.watch(resinClockProvider)();
     final original = resin.originalAt(now);
     final next = resin.nextIn(now);
@@ -58,58 +67,67 @@ class _ResinBarState extends ConsumerState<ResinBar> {
       color: theme.colorScheme.surfaceContainerLow,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        child: Wrap(
-          alignment: WrapAlignment.end,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 4,
+        child: Row(
           children: [
-            pill(
-              Icons.nightlight_round,
-              '$original/${ResinState.cap}',
-              tooltip: 'Resina original',
-              color: Colors.lightBlueAccent,
-            ),
-            Text(
-              next == null
-                  ? 'Llena'
-                  : '+1 en ${_clock(next)} · llena en ${_clock(full!)}',
-              key: const ValueKey('resin-timer'),
-              style: theme.textTheme.bodySmall,
-            ),
-            if (resin.condensed > 0)
-              pill(
-                Icons.hexagon_outlined,
-                '${resin.condensed}',
-                tooltip: 'Resina concentrada (dominios y líneas ley)',
-                color: Colors.amber,
-              ),
-            if (resin.fragile > 0)
-              pill(
-                Icons.water_drop_outlined,
-                '${resin.fragile}',
-                tooltip: 'Resina frágil (+60 cada una)',
-                color: Colors.cyan,
-              ),
-            if (resin.transient > 0)
-              pill(
-                Icons.hourglass_bottom,
-                '${resin.transient}',
-                tooltip: 'Resina transitoria (+60, caduca: úsala primero)',
-                color: Colors.purpleAccent,
-              ),
-            Text(
-              'Total ${resin.totalAt(now)}',
-              style: theme.textTheme.labelLarge,
-            ),
-            IconButton(
-              key: const ValueKey('resin-edit'),
-              tooltip: 'Editar resina',
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.edit_outlined, size: 20),
-              onPressed: () => showDialog<void>(
-                context: context,
-                builder: (_) => const ResinDialog(),
+            const ProfileSwitcher(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  pill(
+                    Icons.nightlight_round,
+                    '$original/${ResinState.cap}',
+                    tooltip: 'Resina original',
+                    color: Colors.lightBlueAccent,
+                  ),
+                  Text(
+                    next == null
+                        ? 'Llena'
+                        : '+1 en ${_clock(next)} · llena en ${_clock(full!)}',
+                    key: const ValueKey('resin-timer'),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  if (resin.condensed > 0)
+                    pill(
+                      Icons.hexagon_outlined,
+                      '${resin.condensed}',
+                      tooltip: 'Resina concentrada (dominios y líneas ley)',
+                      color: Colors.amber,
+                    ),
+                  if (resin.fragile > 0)
+                    pill(
+                      Icons.water_drop_outlined,
+                      '${resin.fragile}',
+                      tooltip: 'Resina frágil (+60 cada una)',
+                      color: Colors.cyan,
+                    ),
+                  if (resin.transient > 0)
+                    pill(
+                      Icons.hourglass_bottom,
+                      '${resin.transient}',
+                      tooltip:
+                          'Resina transitoria (+60, caduca: úsala primero)',
+                      color: Colors.purpleAccent,
+                    ),
+                  Text(
+                    'Total ${resin.totalAt(now)}',
+                    style: theme.textTheme.labelLarge,
+                  ),
+                  IconButton(
+                    key: const ValueKey('resin-edit'),
+                    tooltip: 'Editar resina',
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (_) => const ResinDialog(),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -156,16 +174,21 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
       return;
     }
     if (c > ResinState.maxCondensed) {
-      setState(() => error = 'Solo puedes tener ${ResinState.maxCondensed} de resina concentrada.');
+      setState(
+        () => error =
+            'Solo puedes tener ${ResinState.maxCondensed} de resina concentrada.',
+      );
       return;
     }
     try {
-      await ref.read(resinProvider.notifier).set(
-        original: o,
-        condensed: c,
-        fragile: read(fragile),
-        transient: read(transient),
-      );
+      await ref
+          .read(resinProvider.notifier)
+          .set(
+            original: o,
+            condensed: c,
+            fragile: read(fragile),
+            transient: read(transient),
+          );
       if (mounted) Navigator.pop(context);
     } catch (_) {
       setState(() => error = 'No se pudo guardar. Inténtalo de nuevo.');
@@ -228,23 +251,53 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
               '(1 cada 8 minutos, hasta 200) desde que guardas.',
             ),
             const SizedBox(height: 16),
-            _row(original, 'Original', 'Sirve para todo. Se recarga con el tiempo.',
-                Icons.nightlight_round, Colors.lightBlueAccent, const ValueKey('resin-original')),
-            _row(condensed, 'Concentrada', 'Máximo 5. Vale 40 y da recompensa doble, '
-                'pero solo en dominios y líneas ley (no en jefes).',
-                Icons.hexagon_outlined, Colors.amber, const ValueKey('resin-condensed')),
-            _row(fragile, 'Frágil', 'Cada una da 60 de resina original (pase de batalla, eventos).',
-                Icons.water_drop_outlined, Colors.cyan, const ValueKey('resin-fragile')),
-            _row(transient, 'Transitoria', 'Da 60 de resina original y caduca: gástala primero (Tetera).',
-                Icons.hourglass_bottom, Colors.purpleAccent, const ValueKey('resin-transient')),
+            _row(
+              original,
+              'Original',
+              'Sirve para todo. Se recarga con el tiempo.',
+              Icons.nightlight_round,
+              Colors.lightBlueAccent,
+              const ValueKey('resin-original'),
+            ),
+            _row(
+              condensed,
+              'Concentrada',
+              'Máximo 5. Vale 40 y da recompensa doble, '
+                  'pero solo en dominios y líneas ley (no en jefes).',
+              Icons.hexagon_outlined,
+              Colors.amber,
+              const ValueKey('resin-condensed'),
+            ),
+            _row(
+              fragile,
+              'Frágil',
+              'Cada una da 60 de resina original (pase de batalla, eventos).',
+              Icons.water_drop_outlined,
+              Colors.cyan,
+              const ValueKey('resin-fragile'),
+            ),
+            _row(
+              transient,
+              'Transitoria',
+              'Da 60 de resina original y caduca: gástala primero (Tetera).',
+              Icons.hourglass_bottom,
+              Colors.purpleAccent,
+              const ValueKey('resin-transient'),
+            ),
             if (error != null)
-              Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              Text(
+                error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
           ],
         ),
       ),
     ),
     actions: [
-      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancelar'),
+      ),
       FilledButton(
         key: const ValueKey('resin-save'),
         onPressed: _save,

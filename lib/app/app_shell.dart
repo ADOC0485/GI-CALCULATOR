@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/progression/data/scenario_repository.dart';
+import '../features/profiles/profile.dart';
 import '../features/resin/resin_bar.dart';
 import 'navigation.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({required this.child, required this.location, super.key});
   final Widget child;
   final String location;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Loads the profiles; switching one rebuilds the pages with its data.
+    ref.watch(profilesProvider);
+    final profileId = ref.watch(activeProfileIdProvider);
     final selected = AppSection.values.indexWhere((s) => s.path == location);
     final index = selected < 0 ? 0 : selected;
     return LayoutBuilder(
@@ -107,6 +113,7 @@ class AppShell extends StatelessWidget {
                 ],
                 Expanded(
                   child: Column(
+                    key: ValueKey('profile-$profileId'),
                     children: [
                       const ResinBar(),
                       Expanded(child: child),

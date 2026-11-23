@@ -114,7 +114,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Tu próxima aventura'), findsOneWidget);
+      expect(find.text('¡Hola, Viajero!'), findsOneWidget);
       expect(
         (await ScenarioRepository(secondDb)
             .load('wishes'))!['fields']['Protogemas'],

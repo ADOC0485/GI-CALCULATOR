@@ -14,6 +14,7 @@ import 'support/memory_preferences_repository.dart';
 import 'package:genshin_progress_planner/features/builds/data/build_repository.dart';
 import 'package:genshin_progress_planner/features/builds/domain/build.dart';
 import 'package:genshin_progress_planner/features/catalog/domain/catalog.dart';
+import 'package:genshin_progress_planner/features/profiles/profile.dart';
 import 'package:genshin_progress_planner/features/catalog/presentation/catalog_provider.dart';
 
 Future<ProviderContainer> mountApp(
@@ -35,6 +36,7 @@ Future<ProviderContainer> mountApp(
     overrides: [
       preferencesRepositoryProvider.overrideWithValue(repository),
       buildsProvider.overrideWith((ref) async => []),
+      profilesProvider.overrideWith(_FixedProfiles.new),
       inventoryProvider.overrideWith((ref) async => const Inventory()),
       historyProvider.overrideWith((ref) async => []),
       buildRepositoryProvider.overrideWithValue(_MemoryBuilds()),
@@ -58,7 +60,7 @@ void main() {
     tester,
   ) async {
     await mountApp(tester, MemoryPreferencesRepository());
-    expect(find.text('Tu próxima aventura'), findsOneWidget);
+    expect(find.text('¡Hola, Viajero!'), findsOneWidget);
     for (final section in AppSection.values.skip(1)) {
       await tester.tap(
         find.descendant(
@@ -102,7 +104,7 @@ void main() {
     );
     container.read(routerProvider).go('/dashboard');
     await tester.pumpAndSettle();
-    expect(find.text('Tu próxima aventura'), findsOneWidget);
+    expect(find.text('¡Hola, Viajero!'), findsOneWidget);
   });
 
   testWidgets('Corner button toggles dark and light mode', (tester) async {
@@ -146,7 +148,7 @@ void main() {
     repository.failLoad = false;
     await tester.tap(find.text('Reintentar'));
     await tester.pumpAndSettle();
-    expect(find.text('Tu próxima aventura'), findsOneWidget);
+    expect(find.text('¡Hola, Viajero!'), findsOneWidget);
   });
 
   for (final width in [480.0, 800.0, 1280.0]) {
@@ -183,7 +185,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Página no encontrada · Volver al inicio'));
     await tester.pumpAndSettle();
-    expect(find.text('Tu próxima aventura'), findsOneWidget);
+    expect(find.text('¡Hola, Viajero!'), findsOneWidget);
   });
 
   testWidgets('Large text remains usable', (tester) async {
@@ -199,7 +201,7 @@ void main() {
     final repository = MemoryPreferencesRepository()
       ..preferences = const AppPreferences(appearance: AppAppearance.system);
     await mountApp(tester, repository);
-    final heading = find.text('Tu próxima aventura');
+    final heading = find.text('¡Hola, Viajero!');
     expect(Theme.of(tester.element(heading)).brightness, Brightness.dark);
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     await tester.pumpAndSettle();
@@ -228,4 +230,10 @@ class _MemoryBuilds implements BuildRepository {
   Future<List<HistoryEntry>> history() async => [];
   @override
   Future<Set<String>> checked(String buildId, DateTime day) async => {};
+}
+
+class _FixedProfiles extends ProfilesController {
+  @override
+  Future<Profiles> build() async =>
+      const Profiles([Profile(id: 'default', name: 'Viajero')], 'default');
 }

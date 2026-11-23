@@ -15,6 +15,9 @@ import '../../progression/presentation/progression_dialog.dart'
     show progressionRulesProvider;
 import '../../resin/resin_bar.dart';
 import '../../resin/resin_state.dart';
+import '../../profiles/profile.dart';
+import '../../profiles/profile_dialog.dart';
+import '../../profiles/profiles_card.dart';
 import '../../settings/presentation/theme_toggle_button.dart';
 
 /// Home: pending builds with their progress, and what to do today.
@@ -28,6 +31,7 @@ class DashboardPage extends ConsumerWidget {
     final builds = ref.watch(buildsProvider).asData?.value;
     final inventory = ref.watch(inventoryProvider).asData?.value;
     final resin = ref.watch(resinProvider).asData?.value;
+    final profile = ref.watch(profilesProvider).asData?.value.active;
     final today = DateTime.now();
     AgendaPlan? plan;
     if (bundle != null &&
@@ -52,10 +56,32 @@ class DashboardPage extends ConsumerWidget {
     final buildsCard = _BuildsCard(bundle: bundle, builds: builds, plan: plan);
     final todayCard = _TodayCard(bundle: bundle, plan: plan, today: today);
     return PageFrame(
-      title: 'Tu próxima aventura',
-      subtitle: 'Tus builds pendientes y lo que toca hacer hoy.',
+      title: profile?.greeting ?? 'Tu próxima aventura',
+      subtitle: profile == null
+          ? 'Tus builds pendientes y lo que toca hacer hoy.'
+          : '${profileDetails(profile)} · Tus builds pendientes y lo que toca hacer hoy.',
       action: const ThemeToggleButton(),
       children: [
+        if (profile != null && profile.gender == null && profile.avatarId == null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Card(
+              child: ListTile(
+                leading: ProfileAvatar(profile: profile),
+                title: const Text('Personaliza tu perfil'),
+                subtitle: const Text(
+                  'Ponle tu nombre, servidor, nivel de mundo, AR y tu personaje favorito como avatar.',
+                ),
+                trailing: FilledButton(
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (_) => ProfileDialog(existing: profile),
+                  ),
+                  child: const Text('Personalizar'),
+                ),
+              ),
+            ),
+          ),
         LayoutBuilder(
           builder: (context, constraints) => constraints.maxWidth < 820
               ? Column(
