@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +8,8 @@ import '../builds/domain/build.dart';
 import '../builds/domain/resin_planner.dart';
 import '../builds/presentation/build_page.dart';
 import '../catalog/domain/catalog.dart';
+import '../resin/resin_bar.dart';
+import '../resin/resin_state.dart';
 import '../catalog/presentation/catalog_provider.dart';
 import '../progression/domain/inventory_plan.dart';
 import '../progression/domain/progression_calculator.dart';
@@ -30,6 +31,7 @@ AgendaPlan planAgenda({
   required Inventory inventory,
   required DateTime start,
   int startResin = 180,
+  int startCondensed = 0,
 }) {
   final byId = {for (final r in bundle.records) r.id: r};
   final pool = InventoryPool(inventory);
@@ -56,7 +58,12 @@ AgendaPlan planAgenda({
     tasks.addAll(farm.tasks);
     if (farm.free.isNotEmpty) free[name] = farm.free;
   }
-  final schedule = scheduleResin(tasks, start: start, startResin: startResin);
+  final schedule = scheduleResin(
+    tasks,
+    start: start,
+    startResin: startResin,
+    startCondensed: startCondensed,
+  );
   final finish = <String, DateTime?>{};
   for (final name in names) {
     final own = tasks.where((t) => t.owner == name);
@@ -80,7 +87,6 @@ class AgendaPage extends ConsumerStatefulWidget {
 }
 
 class _AgendaPageState extends ConsumerState<AgendaPage> {
-  final resinNow = TextEditingController(text: '180');
   final today = DateTime.now();
   final done = <String, Set<String>>{};
 
@@ -109,18 +115,13 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   }
 
   @override
-  void dispose() {
-    resinNow.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bundle = ref.watch(catalogProvider).asData?.value;
     final rules = ref.watch(progressionRulesProvider).asData?.value;
     final builds = ref.watch(buildsProvider).asData?.value;
     final inventory = ref.watch(inventoryProvider).asData?.value;
+    final resin = ref.watch(resinProvider).asData?.value;
     if (bundle == null || rules == null || builds == null || inventory == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -136,7 +137,8 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
               builds: builds,
               inventory: inventory,
               start: today,
-              startResin: int.tryParse(resinNow.text.trim()) ?? 0,
+              startResin: resin?.normalAt(today) ?? 180,
+              startCondensed: resin?.condensed ?? 0,
             );
     } on CalculationException catch (e) {
       error = e.message;
@@ -181,20 +183,20 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                     runSpacing: 12,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      SizedBox(
-                        width: 200,
-                        child: TextField(
-                          controller: resinNow,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          decoration: const InputDecoration(
-                            labelText: 'Resina que tienes ahora',
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (_) => setState(() {}),
-                        ),
-                      ),
+                      Text(
+                  resin == null
+                      ? 'Resina: cargando…'
+                      : 'Resina para hoy: ${resin.normalAt(today)}'
+                            '${resin.condensed > 0 ? ' + ${resin.condensed} concentrada' : ''}',
+                ),
+                TextButton.icon(
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (_) => const ResinDialog(),
+                  ),
+                  icon: const Icon(Icons.nightlight_round, size: 18),
+                  label: const Text('Editar resina'),
+                ),
                       Text('Nivel de mundo ${inventory.worldLevel}'),
                       TextButton(
                         onPressed: () => context.go('/settings'),
@@ -262,7 +264,8 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                           secondary: materialIcon(byId[run.task.materialId]?.image),
                           title: Text('${run.task.title} × ${run.count}'),
                           subtitle: Text(
-                            '${run.task.owner} · ${run.task.phase.label} · ${run.resin} de resina',
+                            '${run.task.owner} · ${run.task.phase.label} · ${run.resin} de resina'
+                            '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}',
                           ),
                         ),
                     ],

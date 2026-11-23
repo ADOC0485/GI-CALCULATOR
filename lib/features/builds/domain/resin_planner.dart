@@ -414,9 +414,12 @@ FarmPlan farmTasks({
 }
 
 class PlannedRun {
-  const PlannedRun(this.task, this.count, this.resin);
+  const PlannedRun(this.task, this.count, this.resin, [this.condensed = 0]);
   final FarmTask task;
   final int count, resin;
+
+  /// Part of [resin] paid with Condensed Resin (40 each).
+  final int condensed;
 }
 
 class DayPlan {
@@ -450,6 +453,7 @@ ResinSchedule scheduleResin(
   List<FarmTask> tasks, {
   required DateTime start,
   int startResin = 180,
+  int startCondensed = 0,
   int dailyResin = 180,
   int resinCap = 200,
   int maxDays = 365,
@@ -459,6 +463,8 @@ ResinSchedule scheduleResin(
   }
   final days = <DayPlan>[];
   var resin = startResin;
+  // Condensed Resin, in resin units: only domains and ley lines accept it.
+  var condensed = startCondensed * 40;
   var total = 0;
   final weeklyDone = <String>{};
   var weeklyClaims = 0;
@@ -481,14 +487,28 @@ ResinSchedule scheduleResin(
     for (final task in open) {
       var count = 0;
       var spent = 0;
+      var fromCondensed = 0;
+      final acceptsCondensed = switch (task.kind) {
+        TaskKind.talentDomain ||
+        TaskKind.weaponDomain ||
+        TaskKind.expLeyLine ||
+        TaskKind.moraLeyLine => true,
+        _ => false,
+      };
       while (task.remaining > 0) {
         final weekly = task.kind == TaskKind.weeklyBoss;
         final key = task.bossKey ?? task.title;
         if (weekly && weeklyDone.contains(key)) break;
         // Only the first three weekly boss claims of the week are discounted.
         final cost = weekly ? (weeklyClaims < 3 ? 30 : 60) : task.resin;
-        if (resin < cost) break;
-        resin -= cost;
+        if (acceptsCondensed && condensed >= cost) {
+          condensed -= cost;
+          fromCondensed += cost;
+        } else if (resin >= cost) {
+          resin -= cost;
+        } else {
+          break;
+        }
         spent += cost;
         task.remaining--;
         count++;
@@ -498,7 +518,7 @@ ResinSchedule scheduleResin(
         }
       }
       if (count > 0) {
-        day.runs.add(PlannedRun(task, count, spent));
+        day.runs.add(PlannedRun(task, count, spent, fromCondensed));
         total += spent;
       }
     }

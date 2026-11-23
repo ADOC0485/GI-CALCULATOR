@@ -10,6 +10,8 @@ import '../../progression/domain/inventory_plan.dart';
 import '../../progression/domain/progression_calculator.dart';
 import '../../progression/presentation/progression_dialog.dart'
     show progressionRulesProvider;
+import '../../resin/resin_bar.dart';
+import '../../resin/resin_state.dart';
 import '../data/build_repository.dart';
 import '../domain/build.dart';
 import '../domain/resin_planner.dart';
@@ -52,7 +54,6 @@ class BuildPage extends ConsumerStatefulWidget {
 }
 
 class _BuildPageState extends ConsumerState<BuildPage> {
-  final resinNow = TextEditingController(text: '180');
   final owned = <String, TextEditingController>{};
   final books = List.generate(3, (_) => TextEditingController());
   final ores = List.generate(3, (_) => TextEditingController());
@@ -96,7 +97,7 @@ class _BuildPageState extends ConsumerState<BuildPage> {
 
   @override
   void dispose() {
-    for (final c in [resinNow, mora, worldLevel, ...books, ...ores, ...owned.values]) {
+    for (final c in [mora, worldLevel, ...books, ...ores, ...owned.values]) {
       c.dispose();
     }
     super.dispose();
@@ -212,6 +213,7 @@ class _BuildPageState extends ConsumerState<BuildPage> {
     final weapon = build.weaponId == null ? null : byId[build.weaponId];
     final theme = Theme.of(context);
     final inventory = _inventory();
+    final resin = ref.watch(resinProvider).asData?.value;
 
     List<PhaseNeeds>? phases;
     FarmPlan? farm;
@@ -227,7 +229,8 @@ class _BuildPageState extends ConsumerState<BuildPage> {
       schedule = scheduleResin(
         farm.tasks,
         start: today,
-        startResin: _count(resinNow),
+        startResin: resin?.normalAt(today) ?? 180,
+        startCondensed: resin?.condensed ?? 0,
       );
     } on CalculationException catch (e) {
       error = e.message;
@@ -354,7 +357,20 @@ class _BuildPageState extends ConsumerState<BuildPage> {
               runSpacing: 12,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                _numberField(resinNow, 'Resina que tienes ahora', width: 200),
+                Text(
+                  resin == null
+                      ? 'Resina: cargando…'
+                      : 'Resina para hoy: ${resin.normalAt(today)}'
+                            '${resin.condensed > 0 ? ' + ${resin.condensed} concentrada' : ''}',
+                ),
+                TextButton.icon(
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (_) => const ResinDialog(),
+                  ),
+                  icon: const Icon(Icons.nightlight_round, size: 18),
+                  label: const Text('Editar resina'),
+                ),
                 Text('Nivel de mundo ${inventory.worldLevel}'),
                 TextButton(
                   onPressed: () => context.go('/settings'),
@@ -394,7 +410,8 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                   secondary: materialIcon(byId[run.task.materialId]?.image),
                   title: Text('${run.task.title} × ${run.count}'),
                   subtitle: Text(
-                    '${run.task.phase.label} · ${run.resin} de resina',
+                    '${run.task.phase.label} · ${run.resin} de resina'
+                    '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}',
                   ),
                 ),
             const SizedBox(height: 8),

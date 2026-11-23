@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/resin/resin_bar.dart';
 import 'navigation.dart';
 
 class AppShell extends StatelessWidget {
@@ -104,7 +105,14 @@ class AppShell extends StatelessWidget {
                   ),
                   const VerticalDivider(width: 1),
                 ],
-                Expanded(child: child),
+                Expanded(
+                  child: Column(
+                    children: [
+                      const ResinBar(),
+                      Expanded(child: child),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
