@@ -102,6 +102,40 @@ void main() {
     // 6 weekly boss materials per talent 7→10 (crowns are counted apart).
     expect(weekly.fold(0, (sum, e) => sum + e.value), 12);
 
+    // Listed like the game groups them: specialty, world boss, gems from
+    // smallest to biggest, common drops by tier, then talent materials.
+    final ordered = planInventory(
+      bundle: bundle,
+      record: mavuika,
+      result: calculateProgression(
+        bundle,
+        mavuika,
+        rules,
+        const ProgressionState(level: 1, ascension: 0),
+        const ProgressionState(level: 90, ascension: 6, talents: [1, 10, 10]),
+      ),
+      ownedBooks: const [0, 0, 0],
+      ownedMaterials: const {},
+    ).lines.map((l) => bundle.records.firstWhere((r) => r.id == l.id)).toList();
+    expect(
+      ordered.map((r) => r.material!.category).toList().sublist(0, 9),
+      [
+        'Especialidad local',
+        'Material de jefe',
+        'Gema de ascensión',
+        'Gema de ascensión',
+        'Gema de ascensión',
+        'Gema de ascensión',
+        'Botín común',
+        'Botín común',
+        'Botín común',
+      ],
+    );
+    expect(ordered[2].material!.craft, isNull); // sliver first
+    expect(ordered[3].material!.craft!.fromId, ordered[2].id);
+    expect(ordered[7].material!.craft!.fromId, ordered[6].id);
+    expect(ordered.last.material!.category, 'Libro de talento'); // crown
+
     final empty = planInventory(
       bundle: bundle,
       record: mavuika,

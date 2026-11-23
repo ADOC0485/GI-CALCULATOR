@@ -232,14 +232,88 @@ InventoryPlan planInventory({
     craftingMora: craftingMora,
     moraRuns: _ceilDiv(mora + craftingMora - ownedMora, rates.mora),
     lines: [
-      for (final e in needed.entries)
+      for (final id in _displayOrder(bundle, character, needed.keys, recipes))
         MaterialLine(
-          e.key,
-          e.value,
-          owned(e.key).clamp(0, e.value),
-          (made[e.key] ?? 0).clamp(0, (e.value - owned(e.key)).clamp(0, e.value)),
+          id,
+          needed[id]!,
+          owned(id).clamp(0, needed[id]!),
+          (made[id] ?? 0).clamp(0, (needed[id]! - owned(id)).clamp(0, needed[id]!)),
         ),
     ],
   );
+}
+
+/// Order in which materials are listed, by category, as the game groups them.
+const _characterOrder = [
+  'Especialidad local',
+  'Material de jefe',
+  'Gema de ascensión',
+  'Botín común',
+  'Libro de talento',
+  'Material de jefe semanal',
+];
+const _weaponOrder = ['Material de ascensión de arma', 'Botín común'];
+
+/// Sorts materials by category; each crafting family stays together from the
+/// lowest tier to the highest, and loose items (like the crown) go last.
+List<String> _displayOrder(
+  CatalogBundle bundle,
+  bool character,
+  Iterable<String> ids,
+  Map<String, CraftRecipe> recipes,
+) {
+  final categories = {
+    for (final r in bundle.records)
+      if (r.material != null) r.id: r.material!.category,
+  };
+  final order = character ? _characterOrder : _weaponOrder;
+  String root(String id) {
+    var current = id;
+    while (recipes[current] != null) {
+      current = recipes[current]!.fromId;
+    }
+    return current;
+  }
+
+  int depth(String id) {
+    var d = 0;
+    for (var c = recipes[id]; c != null; c = recipes[c.fromId]) {
+      d++;
+    }
+    return d;
+  }
+
+  final list = ids.toList();
+  final familySize = <String, int>{};
+  for (final id in list) {
+    familySize.update(root(id), (n) => n + 1, ifAbsent: () => 1);
+  }
+  int rank(String id) {
+    final category = categories[id] ?? '';
+    // The Crown of Insight is filed as a talent book: list it last.
+    if (category == 'Libro de talento' && familySize[root(id)] == 1) {
+      return order.length;
+    }
+    final index = order.indexOf(category);
+    return index < 0 ? order.length + 1 : index;
+  }
+
+  final position = {for (final (i, id) in list.indexed) id: i};
+  list.sort((a, b) {
+    for (final c in [
+      rank(a).compareTo(rank(b)),
+      (familySize[root(a)]! > 1 ? 0 : 1).compareTo(
+        familySize[root(b)]! > 1 ? 0 : 1,
+      ),
+      position[root(a)]?.compareTo(position[root(b)] ?? 0) ??
+          root(a).compareTo(root(b)),
+      depth(a).compareTo(depth(b)),
+      position[a]!.compareTo(position[b]!),
+    ]) {
+      if (c != 0) return c;
+    }
+    return 0;
+  });
+  return list;
 }
 
