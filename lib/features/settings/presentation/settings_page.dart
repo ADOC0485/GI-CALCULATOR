@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/presentation/page_frame.dart';
 import '../domain/app_preferences.dart';
+import 'account_card.dart';
 import 'preferences_controller.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -46,6 +47,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       title: 'Ajustes',
       subtitle: 'Haz de este espacio tu compañero de aventuras.',
       children: [
+        const AccountCard(),
+        const SizedBox(height: 24),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(28),

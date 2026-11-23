@@ -12,6 +12,7 @@ import 'package:genshin_progress_planner/features/settings/presentation/preferen
 import 'support/memory_preferences_repository.dart';
 
 import 'package:genshin_progress_planner/features/builds/data/build_repository.dart';
+import 'package:genshin_progress_planner/features/builds/domain/build.dart';
 import 'package:genshin_progress_planner/features/catalog/domain/catalog.dart';
 import 'package:genshin_progress_planner/features/catalog/presentation/catalog_provider.dart';
 
@@ -34,6 +35,9 @@ Future<ProviderContainer> mountApp(
     overrides: [
       preferencesRepositoryProvider.overrideWithValue(repository),
       buildsProvider.overrideWith((ref) async => []),
+      inventoryProvider.overrideWith((ref) async => const Inventory()),
+      historyProvider.overrideWith((ref) async => []),
+      buildRepositoryProvider.overrideWithValue(_MemoryBuilds()),
       catalogProvider.overrideWith(
         (ref) async => CatalogBundle.parse(
           File('assets/catalog/seed-v1.json').readAsStringSync(),
@@ -70,8 +74,12 @@ void main() {
         expect(find.textContaining('Catálogo inicial'), findsOneWidget);
       } else if (section == AppSection.wishes) {
         expect(find.text('Calculadora de deseos'), findsOneWidget);
-      } else {
-        expect(find.text('Este espacio está en preparación'), findsOneWidget);
+      } else if (section == AppSection.agenda) {
+        expect(find.textContaining('Aún no tienes builds'), findsOneWidget);
+      } else if (section == AppSection.inventory) {
+        expect(find.text('EXP y Mora'), findsOneWidget);
+      } else if (section == AppSection.history) {
+        expect(find.textContaining('Todavía no hay nada'), findsOneWidget);
       }
       expect(tester.takeException(), isNull);
     }
@@ -197,4 +205,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(Theme.of(tester.element(heading)).brightness, Brightness.light);
   });
+}
+
+/// Build repository without a database, for app-level tests.
+class _MemoryBuilds implements BuildRepository {
+  final _store = <String, Map<String, dynamic>>{};
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  Future<Map<String, dynamic>> rawInventory() async =>
+      _store['inventario'] ?? {'schema': 1};
+  @override
+  Future<Inventory> inventory() async => Inventory.fromJson(await rawInventory());
+  @override
+  Future<void> updateInventory(Map<String, Object?> changes) async =>
+      _store['inventario'] = {...await rawInventory(), ...changes};
+  @override
+  Future<void> log(String text) async {}
+  @override
+  Future<List<GenshinBuild>> loadAll() async => [];
+  @override
+  Future<List<HistoryEntry>> history() async => [];
+  @override
+  Future<Set<String>> checked(String buildId, DateTime day) async => {};
 }

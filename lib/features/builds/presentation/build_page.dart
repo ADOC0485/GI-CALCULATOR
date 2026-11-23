@@ -122,9 +122,10 @@ class _BuildPageState extends ConsumerState<BuildPage> {
         'booksCharacter': [for (final b in books) b.text.trim()],
         'booksWeapon': [for (final o in ores) o.text.trim()],
         'mora': mora.text.trim(),
-        'worldLevel': worldLevel.text.trim(),
       });
+      await ref.read(buildRepositoryProvider).log('Inventario actualizado.');
       ref.invalidate(inventoryProvider);
+      ref.invalidate(historyProvider);
       setState(() => notice = 'Inventario guardado. Sirve para todas tus builds.');
     } catch (_) {
       setState(() => notice = 'No se pudo guardar el inventario.');
@@ -268,7 +269,11 @@ class _BuildPageState extends ConsumerState<BuildPage> {
               );
               if (ok != true) return;
               await ref.read(buildRepositoryProvider).delete(build.id);
+              await ref
+                  .read(buildRepositoryProvider)
+                  .log('Build eliminada: ${character?.name ?? build.characterId}.');
               ref.invalidate(buildsProvider);
+              ref.invalidate(historyProvider);
               if (context.mounted) context.go('/dashboard');
             },
             icon: const Icon(Icons.delete_outline),
@@ -350,7 +355,11 @@ class _BuildPageState extends ConsumerState<BuildPage> {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 _numberField(resinNow, 'Resina que tienes ahora', width: 200),
-                _numberField(worldLevel, 'Nivel de mundo', width: 140),
+                Text('Nivel de mundo ${inventory.worldLevel}'),
+                TextButton(
+                  onPressed: () => context.go('/settings'),
+                  child: const Text('Cambiar en Ajustes'),
+                ),
               ],
             ),
             const SizedBox(height: 12),

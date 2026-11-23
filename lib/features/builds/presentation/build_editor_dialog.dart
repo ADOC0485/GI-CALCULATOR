@@ -128,8 +128,21 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
       if (weapon != null) {
         calculateProgression(widget.bundle, weapon!, rules, build.weaponNow, build.weaponGoal);
       }
-      await ref.read(buildRepositoryProvider).save(build);
+      final repo = ref.read(buildRepositoryProvider);
+      await repo.save(build);
+      String level(ProgressionState s) =>
+          '${s.level}/${ProgressionRules.caps[s.ascension]}';
+      final old = widget.existing;
+      await repo.log(
+        old == null
+            ? 'Nueva build: ${character!.name}${weapon == null ? '' : ' + ${weapon!.name}'}'
+                  ' (nivel ${level(now)} → ${level(goal)}).'
+            : 'Progreso de ${character!.name}: nivel ${level(old.characterNow)} → ${level(now)}'
+                  '${talentsOn ? ', talentos ${old.characterNow.talents.join('/')} → ${now.talents.join('/')}' : ''}'
+                  '${weapon == null ? '' : '; ${weapon!.name} ${level(old.weaponNow)} → ${level(build.weaponNow)}'}.',
+      );
       ref.invalidate(buildsProvider);
+      ref.invalidate(historyProvider);
       if (mounted) Navigator.pop(context, build);
     } on CalculationException catch (e) {
       setState(() => error = e.message);

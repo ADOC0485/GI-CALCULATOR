@@ -15,6 +15,16 @@ final inventoryProvider = FutureProvider<Inventory>(
   (ref) => ref.watch(buildRepositoryProvider).inventory(),
 );
 
+final historyProvider = FutureProvider<List<HistoryEntry>>(
+  (ref) => ref.watch(buildRepositoryProvider).history(),
+);
+
+class HistoryEntry {
+  const HistoryEntry(this.at, this.text);
+  final DateTime at;
+  final String text;
+}
+
 String dayKey(DateTime d) =>
     '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
@@ -77,6 +87,29 @@ class BuildRepository {
       ...current,
       ...changes,
       'materials': materials,
+    });
+  }
+
+  static const _history = 'historial';
+
+  Future<List<HistoryEntry>> history() async {
+    final items = (await scenarios.load(_history))?['items'];
+    if (items is! List) return [];
+    return [
+      for (final item in items.whereType<Map<String, dynamic>>())
+        if (DateTime.tryParse('${item['at']}') != null && item['text'] is String)
+          HistoryEntry(DateTime.parse('${item['at']}'), item['text'] as String),
+    ];
+  }
+
+  /// Appends a line to the progress log (keeps the latest 300).
+  Future<void> log(String text) async {
+    final all = [...await history(), HistoryEntry(DateTime.now(), text)];
+    final kept = all.length > 300 ? all.sublist(all.length - 300) : all;
+    await scenarios.save(_history, {
+      'items': [
+        for (final e in kept) {'at': e.at.toIso8601String(), 'text': e.text},
+      ],
     });
   }
 

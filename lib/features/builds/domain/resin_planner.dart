@@ -25,6 +25,36 @@ class PhaseNeeds {
       plan.lines.every((l) => l.missing == 0);
 }
 
+/// What is still unassigned while several builds take from one inventory.
+class InventoryPool {
+  InventoryPool(Inventory inventory)
+    : materials = Map.of(inventory.materials),
+      books = List.of(inventory.characterBooks),
+      ores = List.of(inventory.weaponOres),
+      mora = inventory.mora,
+      worldLevel = inventory.worldLevel;
+  final Map<String, int> materials;
+  final List<int> books, ores;
+  int mora;
+  final int worldLevel;
+
+  /// Takes the EXP items a phase uses: big ones first, small ones to finish.
+  static void consume(List<int> owned, List<ExpItem> items, int experience) {
+    var left = experience;
+    for (var i = 0; i < items.length && left > 0; i++) {
+      final use = (left ~/ items[i].experience).clamp(0, owned[i]);
+      owned[i] -= use;
+      left -= use * items[i].experience;
+    }
+    for (var i = items.length - 1; i >= 0 && left > 0; i--) {
+      final use = ((left + items[i].experience - 1) ~/ items[i].experience)
+          .clamp(0, owned[i]);
+      owned[i] -= use;
+      left -= use * items[i].experience;
+    }
+  }
+}
+
 /// Splits a build into phases and hands the shared inventory to them in
 /// priority order, so what you own goes to the first phase that needs it.
 List<PhaseNeeds> buildNeeds({
@@ -32,14 +62,26 @@ List<PhaseNeeds> buildNeeds({
   required ProgressionRules rules,
   required GenshinBuild build,
   required Inventory inventory,
+}) => buildNeedsFromPool(
+  bundle: bundle,
+  rules: rules,
+  build: build,
+  pool: InventoryPool(inventory),
+);
+
+/// Like [buildNeeds], but takes from (and updates) a pool shared by builds.
+List<PhaseNeeds> buildNeedsFromPool({
+  required CatalogBundle bundle,
+  required ProgressionRules rules,
+  required GenshinBuild build,
+  required InventoryPool pool,
 }) {
   final byId = {for (final r in bundle.records) r.id: r};
   final character = byId[build.characterId];
   require(character != null, 'El personaje ya no está en el catálogo.');
   final weapon = build.weaponId == null ? null : byId[build.weaponId];
-  final owned = Map<String, int>.from(inventory.materials);
-  var mora = inventory.mora;
-  final rates = LeyLineRates.forWorldLevel(inventory.worldLevel);
+  final owned = pool.materials;
+  final rates = LeyLineRates.forWorldLevel(pool.worldLevel);
   final phases = <PhaseNeeds>[];
 
   void add(
@@ -56,7 +98,7 @@ List<PhaseNeeds> buildNeeds({
       result: result,
       ownedBooks: books,
       ownedMaterials: {for (final id in result.materials.keys) id: owned[id] ?? 0},
-      ownedMora: mora,
+      ownedMora: pool.mora,
       rates: rates,
     );
     for (final line in plan.lines) {
@@ -69,7 +111,12 @@ List<PhaseNeeds> buildNeeds({
                 .clamp(0, 1 << 40);
       }
     }
-    mora = (mora - plan.moraTotal).clamp(0, mora);
+    pool.mora = (pool.mora - plan.moraTotal).clamp(0, pool.mora);
+    if (identical(books, pool.books)) {
+      InventoryPool.consume(pool.books, characterExpItems, result.experience);
+    } else if (identical(books, pool.ores)) {
+      InventoryPool.consume(pool.ores, weaponExpItems, result.experience);
+    }
     phases.add(PhaseNeeds(phase, record, result, plan));
   }
 
@@ -79,7 +126,7 @@ List<PhaseNeeds> buildNeeds({
     character!,
     ProgressionState(level: now.level, ascension: now.ascension, talents: now.talents),
     ProgressionState(level: goal.level, ascension: goal.ascension, talents: now.talents),
-    inventory.characterBooks,
+    pool.books,
   );
   if (weapon != null) {
     add(
@@ -87,7 +134,7 @@ List<PhaseNeeds> buildNeeds({
       weapon,
       build.weaponNow,
       build.weaponGoal,
-      inventory.weaponOres,
+      pool.ores,
     );
   }
   if (build.talentsOn) {
@@ -139,10 +186,22 @@ class FarmTask {
     required this.resin,
     this.materialId,
     this.days = const {},
+    this.group = 0,
+    this.owner = '',
+    this.bossKey,
   });
   final TaskKind kind;
   final BuildPhase phase;
   final String title;
+
+  /// Lower groups are farmed first (build order, then phase).
+  final int group;
+
+  /// Name of the build the task belongs to (empty for a single build).
+  final String owner;
+
+  /// Weekly bosses are claimed once per week each, whatever the build.
+  final String? bossKey;
   final int runs, resin;
   final String? materialId;
 
@@ -172,6 +231,8 @@ FarmPlan farmTasks({
   required CatalogBundle bundle,
   required List<PhaseNeeds> phases,
   required LeyLineRates rates,
+  int groupBase = 0,
+  String owner = '',
 }) {
   final byId = {for (final r in bundle.records) r.id: r};
   final tasks = <FarmTask>[];
@@ -224,6 +285,8 @@ FarmPlan farmTasks({
       tasks.add(FarmTask(
         kind: TaskKind.worldBoss,
         phase: phase,
+        group: groupBase + phase.index,
+        owner: owner,
         title: boss.isNotEmpty
             ? 'Jefe de mundo: ${name(icon)} y gemas'
             : 'Jefe de mundo del elemento: ${name(icon)}',
@@ -236,7 +299,13 @@ FarmPlan farmTasks({
       tasks.add(FarmTask(
         kind: TaskKind.weeklyBoss,
         phase: phase,
+        group: groupBase + phase.index,
+        owner: owner,
         title: 'Jefe semanal: ${name(l.id)}',
+        bossKey: byId[l.id]?.material?.sourceHints
+            .where((h) => h.startsWith('Lo sueltan'))
+            .firstOrNull ??
+            l.id,
         runs: _ceil(l.missing / DropAverages.weeklyMaterial),
         resin: 30,
         materialId: l.id,
@@ -251,6 +320,8 @@ FarmPlan farmTasks({
       tasks.add(FarmTask(
         kind: TaskKind.talentDomain,
         phase: phase,
+        group: groupBase + phase.index,
+        owner: owner,
         title: 'Dominio de talentos: ${name(chain.first.id)}',
         runs: _ceil(units(chain) / DropAverages.bookUnits),
         resin: 20,
@@ -270,6 +341,8 @@ FarmPlan farmTasks({
       tasks.add(FarmTask(
         kind: TaskKind.weaponDomain,
         phase: phase,
+        group: groupBase + phase.index,
+        owner: owner,
         title: 'Dominio de armas: ${name(weaponMats.first.id)}',
         runs: _ceil(units(weaponMats) / DropAverages.weaponUnits),
         resin: 20,
@@ -300,6 +373,8 @@ FarmPlan farmTasks({
       tasks.add(FarmTask(
         kind: TaskKind.expLeyLine,
         phase: phase,
+        group: groupBase + phase.index,
+        owner: owner,
         title: 'Línea ley de EXP (libros de personaje)',
         runs: _ceil(need.plan.expMissing / rates.experience),
         resin: 20,
@@ -317,6 +392,8 @@ FarmPlan farmTasks({
       tasks.add(FarmTask(
         kind: TaskKind.moraLeyLine,
         phase: phase,
+        group: groupBase + phase.index,
+        owner: owner,
         title: 'Línea ley de Mora',
         runs: _ceil(need.plan.moraMissing / rates.mora),
         resin: 20,
@@ -337,10 +414,9 @@ FarmPlan farmTasks({
 }
 
 class PlannedRun {
-  const PlannedRun(this.task, this.count);
+  const PlannedRun(this.task, this.count, this.resin);
   final FarmTask task;
-  final int count;
-  int get resin => task.resin * count;
+  final int count, resin;
 }
 
 class DayPlan {
@@ -384,7 +460,8 @@ ResinSchedule scheduleResin(
   final days = <DayPlan>[];
   var resin = startResin;
   var total = 0;
-  final weeklyDone = <FarmTask>{};
+  final weeklyDone = <String>{};
+  var weeklyClaims = 0;
   DateTime? week;
   for (var i = 0; i < maxDays; i++) {
     final date = DateTime(start.year, start.month, start.day + i);
@@ -392,28 +469,37 @@ ResinSchedule scheduleResin(
     if (week != monday) {
       week = monday;
       weeklyDone.clear();
+      weeklyClaims = 0;
     }
     if (i > 0) resin = (resin + dailyResin).clamp(0, resinCap > resin ? resinCap : resin);
     final day = DayPlan(date);
-    for (final phase in BuildPhase.values) {
-      final open = tasks
-          .where((t) => t.phase == phase && t.remaining > 0)
-          .where((t) => _priority(t, date.weekday) < 9)
-          .toList()
-        ..sort((a, b) => _priority(a, date.weekday).compareTo(_priority(b, date.weekday)));
-      for (final task in open) {
-        var count = 0;
-        while (task.remaining > 0 && resin >= task.resin) {
-          if (task.kind == TaskKind.weeklyBoss && weeklyDone.contains(task)) break;
-          resin -= task.resin;
-          task.remaining--;
-          count++;
-          if (task.kind == TaskKind.weeklyBoss) weeklyDone.add(task);
+    final open = tasks.where((t) => t.remaining > 0 && _priority(t, date.weekday) < 9).toList()
+      ..sort((a, b) {
+        final g = a.group.compareTo(b.group);
+        return g != 0 ? g : _priority(a, date.weekday).compareTo(_priority(b, date.weekday));
+      });
+    for (final task in open) {
+      var count = 0;
+      var spent = 0;
+      while (task.remaining > 0) {
+        final weekly = task.kind == TaskKind.weeklyBoss;
+        final key = task.bossKey ?? task.title;
+        if (weekly && weeklyDone.contains(key)) break;
+        // Only the first three weekly boss claims of the week are discounted.
+        final cost = weekly ? (weeklyClaims < 3 ? 30 : 60) : task.resin;
+        if (resin < cost) break;
+        resin -= cost;
+        spent += cost;
+        task.remaining--;
+        count++;
+        if (weekly) {
+          weeklyDone.add(key);
+          weeklyClaims++;
         }
-        if (count > 0) {
-          day.runs.add(PlannedRun(task, count));
-          total += task.resin * count;
-        }
+      }
+      if (count > 0) {
+        day.runs.add(PlannedRun(task, count, spent));
+        total += spent;
       }
     }
     days.add(day);

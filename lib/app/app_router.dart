@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/presentation/pending_page.dart';
+import '../features/agenda/agenda_page.dart';
 import '../features/builds/presentation/build_page.dart';
+import '../features/history/history_page.dart';
+import '../features/inventory/inventory_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/catalog/domain/catalog.dart';
@@ -36,7 +38,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                   key: ValueKey('weapons'),
                   initialKind: CatalogKind.weapon,
                 ),
-                _ => PendingPage(section: section),
+                AppSection.inventory => const InventoryPage(),
+                AppSection.agenda => const AgendaPage(),
+                AppSection.history => const HistoryPage(),
               },
             ),
           GoRoute(
