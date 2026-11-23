@@ -78,7 +78,10 @@ void main() {
   testWidgets('Theme changes only after saving successfully', (tester) async {
     final repository = MemoryPreferencesRepository();
     final container = await mountApp(tester, repository);
-    await tester.tap(find.text('Personalizar apariencia'));
+    await tester.tap(find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text('Ajustes'),
+      ));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('appearance-dark')));
     await tester.pumpAndSettle();
@@ -92,12 +95,26 @@ void main() {
     expect(find.text('Tu próxima aventura'), findsOneWidget);
   });
 
+  testWidgets('Corner button toggles dark and light mode', (tester) async {
+    final repository = MemoryPreferencesRepository();
+    await mountApp(tester, repository);
+    await tester.tap(find.byKey(const ValueKey('theme-toggle')));
+    await tester.pumpAndSettle();
+    expect(repository.preferences.appearance, AppAppearance.dark);
+    await tester.tap(find.byKey(const ValueKey('theme-toggle')));
+    await tester.pumpAndSettle();
+    expect(repository.preferences.appearance, AppAppearance.light);
+  });
+
   testWidgets('Failed save is visible and keeps previous appearance', (
     tester,
   ) async {
     final repository = MemoryPreferencesRepository()..failSave = true;
     await mountApp(tester, repository);
-    await tester.tap(find.text('Personalizar apariencia'));
+    await tester.tap(find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text('Ajustes'),
+      ));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('appearance-dark')));
     await tester.pumpAndSettle();
@@ -137,7 +154,10 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.widgetWithText(ListTile, 'Ajustes'));
       } else {
-        await tester.tap(find.text('Personalizar apariencia'));
+        await tester.tap(find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text('Ajustes'),
+      ));
       }
       await tester.pumpAndSettle();
       expect(find.text('Apariencia'), findsOneWidget);

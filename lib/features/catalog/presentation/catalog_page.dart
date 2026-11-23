@@ -31,14 +31,18 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
   late CatalogKind _kind = widget.initialKind;
   String _query = '';
   // Search filters: null means "any".
-  String? _element, _weapon, _gender;
+  String? _element, _weapon, _gender, _rarity;
 
   bool _matchesFilters(CatalogRecord r) {
     final p = r.progression;
     return (_element == null || p?.element == _element) &&
         (_weapon == null || p?.weaponType == _weapon) &&
-        (_gender == null || p?.gender == _gender);
+        (_gender == null || p?.gender == _gender) &&
+        (_rarity == null || _stars(r) == _rarity);
   }
+
+  static String? _stars(CatalogRecord r) =>
+      r.rarity == null ? null : '${r.rarity} ★';
 
   Widget _filterRow(
     String label,
@@ -133,7 +137,7 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                     selected: kind == _kind,
                     onSelected: (_) => setState(() {
                       _kind = kind;
-                      _element = _weapon = _gender = null;
+                      _element = _weapon = _gender = _rarity = null;
                     }),
                   ),
                 FilledButton.icon(
@@ -179,6 +183,12 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                           (v) => _element = v,
                         ),
                       _filterRow(
+                        'Rareza',
+                        ofKind.map(_stars),
+                        _rarity,
+                        (v) => _rarity = v,
+                      ),
+                      _filterRow(
                         'Arma',
                         ofKind.map((r) => r.progression?.weaponType),
                         _weapon,
@@ -191,10 +201,13 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                           _gender,
                           (v) => _gender = v,
                         ),
-                      if (_element != null || _weapon != null || _gender != null)
+                      if (_element != null ||
+                          _weapon != null ||
+                          _gender != null ||
+                          _rarity != null)
                         TextButton.icon(
                           onPressed: () => setState(
-                            () => _element = _weapon = _gender = null,
+                            () => _element = _weapon = _gender = _rarity = null,
                           ),
                           icon: const Icon(Icons.filter_alt_off_outlined),
                           label: const Text('Quitar filtros'),

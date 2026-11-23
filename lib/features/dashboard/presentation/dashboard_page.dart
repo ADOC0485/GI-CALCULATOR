@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/presentation/page_frame.dart';
+import '../../settings/presentation/theme_toggle_button.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -11,6 +12,7 @@ class DashboardPage extends StatelessWidget {
     return PageFrame(
       title: 'Tu próxima aventura',
       subtitle: 'Un lugar para organizar cada paso de tu progreso.',
+      action: const ThemeToggleButton(),
       children: [
         Card(
           child: Padding(
@@ -49,12 +51,6 @@ class DashboardPage extends StatelessWidget {
                   'Explora personajes, armas y materiales del catálogo inicial.\nConsulta sus fuentes y los datos pendientes de verificación.',
                 ),
                 const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: () => context.go('/settings'),
-                  icon: const Icon(Icons.tune_rounded),
-                  label: const Text('Personalizar apariencia'),
-                ),
-                const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => context.go('/characters'),
                   icon: const Icon(Icons.menu_book_outlined),

@@ -43,6 +43,15 @@ void main() {
     await tester.tap(find.text('Quitar filtros'));
     await tester.pumpAndSettle();
     expect(find.text('Amber'), findsOneWidget);
+    // Weapons can be filtered by rarity and type.
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Armas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, '3 ★'));
+    await tester.pumpAndSettle();
+    expect(find.text('Espada del Alba'), findsOneWidget);
+    expect(find.text('Arco de Favonius'), findsNothing);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Personajes'));
+    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'amber');
     await tester.pumpAndSettle();
     expect(find.text('Lisa'), findsNothing);

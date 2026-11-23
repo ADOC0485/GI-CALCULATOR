@@ -84,7 +84,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Personalizar apariencia'));
+      await tester.tap(find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text('Ajustes'),
+      ));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('appearance-dark')));
       await tester.pumpAndSettle();

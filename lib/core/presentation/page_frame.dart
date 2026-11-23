@@ -5,8 +5,10 @@ class PageFrame extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.children,
+    this.action,
     super.key,
   });
+  final Widget? action;
   final String title;
   final String subtitle;
   final List<Widget> children;
@@ -20,10 +22,18 @@ class PageFrame extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                ?action,
+              ],
             ),
             const SizedBox(height: 8),
             Text(
