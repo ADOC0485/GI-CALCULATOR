@@ -146,12 +146,29 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('EXP necesaria: 8362650'), findsOneWidget);
+      // No partial EXP field: the game does not show it.
+      expect(find.textContaining('EXP parcial'), findsNothing);
       await tester.scrollUntilVisible(
-        input('Ascensión objetivo'),
+        find.byKey(const ValueKey('level-actual')),
         -300,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.enterText(input('Ascensión objetivo'), '0');
+      // 50/50 vs 50/60, like the in-game level display.
+      await tester.enterText(find.byKey(const ValueKey('level-actual')), '50');
+      await tester.pumpAndSettle();
+      expect(find.text('50 · sin ascender'), findsOneWidget);
+      expect(find.text('Ascensión 2/6'), findsOneWidget);
+      await tester.tap(find.text('50 · sin ascender'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('60 · ya ascendido').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Ascensión 3/6'), findsOneWidget);
+      // Talents stay hidden until the box is ticked.
+      expect(find.text('Ataque normal'), findsNothing);
+      await tester.tap(find.text('Subir talentos'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ataque normal'), findsOneWidget);
+      await tester.enterText(find.byKey(const ValueKey('level-objetivo')), '95');
       await tester.pumpAndSettle();
       expect(
         tester

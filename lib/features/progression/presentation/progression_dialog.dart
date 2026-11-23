@@ -13,6 +13,16 @@ final progressionRulesProvider = FutureProvider(
   ),
 );
 
+const _talentNames = ['Ataque normal', 'Habilidad elemental', 'Definitiva'];
+const _talentKeys = ['Ataque', 'Habilidad', 'Definitiva'];
+
+/// Level caps a level can show in game: 50 can be 50/50 or 50/60.
+List<int> capsForLevel(int level) => [
+  for (var a = 0; a < ProgressionRules.caps.length; a++)
+    if (level >= ProgressionRules.floors[a] && level <= ProgressionRules.caps[a])
+      ProgressionRules.caps[a],
+];
+
 class ProgressionDialog extends ConsumerStatefulWidget {
   const ProgressionDialog({
     required this.bundle,
@@ -25,44 +35,89 @@ class ProgressionDialog extends ConsumerStatefulWidget {
   ConsumerState<ProgressionDialog> createState() => _ProgressionDialogState();
 }
 
-class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
-  final fields = <String, TextEditingController>{
-    for (final entry in {
-      'Nivel actual': '1',
-      'Ascensión actual': '0',
-      'EXP parcial actual': '0',
-      'Nivel objetivo': '90',
-      'Ascensión objetivo': '6',
-      'EXP parcial objetivo': '0',
-      'Ataque actual': '1',
-      'Habilidad actual': '1',
-      'Definitiva actual': '1',
-      'Ataque objetivo': '1',
-      'Habilidad objetivo': '1',
-      'Definitiva objetivo': '1',
-    }.entries)
-      entry.key: TextEditingController(text: entry.value),
-  };
-  bool busy = false;
-  String? notice;
-  @override
+class _Side {
+  _Side(String level, this.cap, List<String> talents)
+    : level = TextEditingController(text: level),
+      talents = [for (final t in talents) TextEditingController(text: t)];
+  final TextEditingController level;
+  final List<TextEditingController> talents;
+  int cap;
   void dispose() {
-    for (final c in fields.values) {
+    level.dispose();
+    for (final c in talents) {
       c.dispose();
     }
+  }
+}
+
+class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
+  final now = _Side('1', 20, ['1', '1', '1']);
+  final goal = _Side('90', 90, ['1', '10', '10']);
+  bool talentsOn = false;
+  bool busy = false;
+  String? notice;
+
+  bool get isCharacter => widget.record.kind == CatalogKind.character;
+
+  @override
+  void dispose() {
+    now.dispose();
+    goal.dispose();
     super.dispose();
   }
 
-  ProgressionState state(bool target) {
-    final suffix = target ? 'objetivo' : 'actual';
-    int value(String key) =>
-        whole(fields['$key $suffix']!.text, '$key $suffix');
+  ProgressionState state(_Side side, String suffix) {
+    final level = whole(side.level.text, 'Nivel $suffix');
+    final caps = capsForLevel(level);
+    require(caps.isNotEmpty, 'Nivel $suffix: debe estar entre 1 y 90.');
+    final cap = caps.contains(side.cap) ? side.cap : caps.first;
     return ProgressionState(
-      level: value('Nivel'),
-      ascension: value('Ascensión'),
-      experience: value('EXP parcial'),
-      talents: [value('Ataque'), value('Habilidad'), value('Definitiva')],
+      level: level,
+      ascension: ProgressionRules.caps.indexOf(cap),
+      talents: talentsOn && isCharacter
+          ? [
+              for (var i = 0; i < 3; i++)
+                whole(side.talents[i].text, '${_talentNames[i]} ($suffix)'),
+            ]
+          : const [1, 1, 1],
     );
+  }
+
+  void changed() => setState(() => notice = null);
+
+  Map<String, String> _fields() => {
+    for (final (side, suffix) in [(now, 'actual'), (goal, 'objetivo')]) ...{
+      'Nivel $suffix': side.level.text,
+      'Tope $suffix': '${side.cap}',
+      for (var i = 0; i < 3; i++)
+        '${_talentKeys[i]} $suffix': side.talents[i].text,
+    },
+    'Subir talentos': talentsOn ? 'sí' : 'no',
+  };
+
+  void _restore(Map<String, dynamic> values) {
+    for (final (side, suffix) in [(now, 'actual'), (goal, 'objetivo')]) {
+      final level = values['Nivel $suffix'];
+      if (level is String) side.level.text = level;
+      final cap = int.tryParse('${values['Tope $suffix']}');
+      // Scenarios saved before this screen stored the ascension number.
+      final ascension = int.tryParse('${values['Ascensión $suffix']}');
+      if (cap != null) {
+        side.cap = cap;
+      } else if (ascension != null && ascension >= 0 && ascension <= 6) {
+        side.cap = ProgressionRules.caps[ascension];
+      }
+      for (var i = 0; i < 3; i++) {
+        final talent = values['${_talentKeys[i]} $suffix'];
+        if (talent is String) side.talents[i].text = talent;
+      }
+    }
+    talentsOn = values['Subir talentos'] == 'sí' ||
+        (values['Subir talentos'] == null &&
+            values['Ataque objetivo'] is String &&
+            [for (final k in _talentKeys) values['$k objetivo']].any(
+              (v) => v != '1',
+            ));
   }
 
   Future<void> storage(bool save) async {
@@ -75,9 +130,9 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
       final key = 'progression:${widget.record.id}';
       if (save) {
         await repo.save(key, {
-          'schema': 1,
+          'schema': 2,
           'catalogVersion': widget.bundle.version,
-          'fields': fields.map((k, v) => MapEntry(k, v.text)),
+          'fields': _fields(),
         });
         notice = 'Escenario guardado en este equipo.';
       } else {
@@ -86,22 +141,170 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
         if (stored == null) {
           notice = 'Todavía no hay un escenario guardado.';
         } else {
-          final values = stored['fields'] as Map<String, dynamic>;
-          for (final entry in fields.entries) {
-            if (values[entry.key] is String) {
-              entry.value.text = values[entry.key] as String;
-            }
-          }
+          _restore(stored['fields'] as Map<String, dynamic>);
           notice = stored['catalogVersion'] == widget.bundle.version
               ? 'Escenario recuperado y recalculado.'
               : 'El catálogo cambió: escenario recalculado con la versión activa.';
         }
       }
     } catch (_) {
-      notice = 'No se pudo guardar o recuperar el escenario. Tus datos anteriores se conservan.';
+      notice =
+          'No se pudo guardar o recuperar el escenario. Tus datos anteriores se conservan.';
     } finally {
       if (mounted) setState(() => busy = false);
     }
+  }
+
+  Widget _levelCard(BuildContext context, _Side side, bool target) {
+    final theme = Theme.of(context);
+    final level = int.tryParse(side.level.text.trim());
+    final caps = level == null ? <int>[] : capsForLevel(level);
+    if (caps.isNotEmpty && !caps.contains(side.cap)) side.cap = caps.first;
+    final ascension = caps.isEmpty
+        ? null
+        : ProgressionRules.caps.indexOf(side.cap);
+    final suffix = target ? 'objetivo' : 'actual';
+    return SizedBox(
+      width: 340,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                target ? 'Objetivo' : 'Como lo tienes ahora',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    child: TextField(
+                      key: ValueKey('level-$suffix'),
+                      controller: side.level,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        labelText: 'Nivel $suffix',
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (_) => changed(),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                    child: Text('/', style: TextStyle(fontSize: 20)),
+                  ),
+                  Expanded(
+                    child: caps.length > 1
+                        ? DropdownButtonFormField<int>(
+                            key: ValueKey('cap-$suffix-${side.cap}-$caps'),
+                            initialValue: side.cap,
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                              labelText: '¿Ya ascendido?',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: [
+                              for (final (i, cap) in caps.indexed)
+                                DropdownMenuItem(
+                                  value: cap,
+                                  child: Text(
+                                    i == 0
+                                        ? '$cap · sin ascender'
+                                        : '$cap · ya ascendido',
+                                  ),
+                                ),
+                            ],
+                            onChanged: (cap) => setState(() {
+                              side.cap = cap!;
+                              notice = null;
+                            }),
+                          )
+                        : InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Nivel máximo',
+                              border: OutlineInputBorder(),
+                            ),
+                            child: Text(caps.isEmpty ? '—' : '${caps.first}'),
+                          ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (ascension != null)
+                Semantics(
+                  label: 'Ascensión $ascension de 6',
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < 6; i++)
+                        Icon(
+                          i < ascension ? Icons.star : Icons.star_border,
+                          size: 20,
+                          color: i < ascension
+                              ? Colors.amber
+                              : theme.colorScheme.outline,
+                        ),
+                      const SizedBox(width: 8),
+                      Flexible(child: Text('Ascensión $ascension/6')),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _talentTable(BuildContext context) {
+    Widget cell(TextEditingController c, String label) => SizedBox(
+      width: 90,
+      child: TextField(
+        controller: c,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        textAlign: TextAlign.center,
+        decoration: InputDecoration(
+          labelText: label,
+          isDense: true,
+          border: const OutlineInputBorder(),
+        ),
+        onChanged: (_) => changed(),
+      ),
+    );
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Niveles base, sin contar el +3 de las constelaciones (1 a 10).',
+            ),
+            const SizedBox(height: 12),
+            for (var i = 0; i < 3; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: [
+                    SizedBox(width: 160, child: Text(_talentNames[i])),
+                    cell(now.talents[i], 'Ahora'),
+                    const Icon(Icons.arrow_forward, size: 18),
+                    cell(goal.talents[i], 'Objetivo'),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -116,8 +319,8 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
           widget.bundle,
           widget.record,
           rules,
-          state(false),
-          state(true),
+          state(now, 'actual'),
+          state(goal, 'objetivo'),
         );
       } on CalculationException catch (e) {
         error = e.message;
@@ -127,55 +330,39 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
     return AlertDialog(
       title: Text('Calcular · ${widget.record.name}'),
       content: SizedBox(
-        width: 850,
+        width: 760,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Hasta nivel 90 · Ascensiones 0–6: límites 20 / 40 / 50 / 60 / 70 / 80 / 90. En un límite puedes elegir antes o después de ascender.',
+                'Pon el nivel tal como lo ves en el juego, por ejemplo 50/50. '
+                'Si está justo en un tope, indica si ya lo ascendiste.',
               ),
               const SizedBox(height: 16),
-              for (final target in [false, true]) ...[
-                Text(
-                  target ? 'Tu objetivo' : 'Tu progreso actual',
-                  style: Theme.of(context).textTheme.titleMedium,
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _levelCard(context, now, false),
+                  _levelCard(context, goal, true),
+                ],
+              ),
+              if (isCharacter) ...[
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: talentsOn,
+                  title: const Text('Subir talentos'),
+                  onChanged: (v) => setState(() {
+                    talentsOn = v!;
+                    notice = null;
+                  }),
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 16,
-                  children: [
-                    for (final label in ['Nivel', 'Ascensión', 'EXP parcial'])
-                      CalculatorField(
-                        '$label ${target ? 'objetivo' : 'actual'}',
-                        fields['$label ${target ? 'objetivo' : 'actual'}']!,
-                        () => setState(() => notice = null),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 20),
+                if (talentsOn) _talentTable(context),
               ],
-              if (widget.record.kind == CatalogKind.character) ...[
-                const Text(
-                  'Talentos base · sin bonos de constelación (por ejemplo, 1 / 10 / 10)',
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 16,
-                  children: [
-                    for (final target in [false, true])
-                      for (final label in ['Ataque', 'Habilidad', 'Definitiva'])
-                        CalculatorField(
-                          '$label ${target ? 'objetivo' : 'actual'}',
-                          fields['$label ${target ? 'objetivo' : 'actual'}']!,
-                          () => setState(() => notice = null),
-                        ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-              ],
+              const SizedBox(height: 16),
               if (rulesValue.isLoading) const LinearProgressIndicator(),
               if (rulesValue.hasError)
                 const Text('No se pudieron cargar las reglas de cálculo.'),
@@ -193,17 +380,20 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
                   'Mora de mejora: ${result.levelingMora} · incluida en el total de Mora de abajo.',
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Plan de libros / minerales: combinación sin bonificaciones, redondeada en cada límite de ascensión. No utiliza armas como alimento.',
+                Text(
+                  isCharacter
+                      ? 'Libros de EXP (redondeados en cada tope de ascensión):'
+                      : 'Minerales de refinamiento (redondeados en cada tope de ascensión; sin usar armas como alimento):',
                 ),
                 for (final entry in result.expItems.entries)
                   Text('${entry.key}: ${entry.value}'),
-                Text(
-                  'EXP suministrada de más: ${result.surplus} (se pierde en límites; puede quedar como EXP parcial al finalizar).',
-                ),
+                Text('EXP que sobra: ${result.surplus}'),
                 const SizedBox(height: 16),
-                const Text(
-                  'Materiales totales · ascensión + talentos + Mora de mejora',
+                Text(
+                  talentsOn && isCharacter
+                      ? 'Materiales totales · ascensión + talentos + Mora'
+                      : 'Materiales totales · ascensión + Mora',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (result.materials.isEmpty)
                   const Text('Tu progreso ya coincide con el objetivo.'),
@@ -216,7 +406,7 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
                   ),
                 const SizedBox(height: 16),
                 Text(
-                  'Catálogo ${widget.bundle.version} · Reglas ${rules!.version}. Fuentes comunitarias revisadas; sin descontar inventario.',
+                  'Catálogo ${widget.bundle.version}. Fuentes comunitarias; sin descontar inventario.',
                 ),
               ],
               if (notice != null)
