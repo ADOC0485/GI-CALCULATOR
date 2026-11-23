@@ -100,10 +100,12 @@ class Provenance {
 }
 
 class Requirement {
-  Requirement._(this.kind, this.stage, this.materials);
+  Requirement._(this.kind, this.stage, this.materials, this.talentIndex);
   final String kind;
   final int stage;
   final Map<String, int> materials;
+  // -1 denotes a common talent table in legacy catalogs.
+  final int talentIndex;
   factory Requirement.fromJson(Object? value, String path) {
     final json = _object(value, path);
     final kind = _string(json['kind'], '$path.kind');
@@ -118,6 +120,8 @@ class Requirement {
     );
     final amounts = _object(json['materials'], '$path.materials');
     if (amounts.isEmpty) _fail(path, 'requisito sin materiales');
+    final talentIndex = json['talentIndex'] == null ? -1 : _integer(json['talentIndex'], '$path.talentIndex', 0, 2);
+    if (kind != 'talent' && talentIndex != -1) _fail(path, 'índice de talento en ascensión');
     return Requirement._(
       kind,
       stage,
@@ -127,6 +131,7 @@ class Requirement {
               MapEntry(id, _integer(count, '$path.$id', 1, 1000000000)),
         ),
       ),
+      talentIndex,
     );
   }
 }
@@ -152,12 +157,14 @@ class ProgressionData {
     this.maxLevel,
     this.requirements,
     this.experience,
+    this.calculationProfile,
   );
   final String weaponType;
   final String? element, region;
   final int? maxLevel;
   final List<Requirement> requirements;
   final List<ExperienceStep> experience;
+  final String? calculationProfile;
 }
 
 class MaterialData {
@@ -269,7 +276,7 @@ class CatalogRecord {
         json['requirements'],
         id,
       ).map((v) => Requirement.fromJson(v, id)).toList();
-      final keys = requirements.map((r) => '${r.kind}:${r.stage}').toSet();
+      final keys = requirements.map((r) => '${r.kind}:${r.talentIndex}:${r.stage}').toSet();
       if (keys.length != requirements.length) _fail(id, 'etapas duplicadas');
       if (kind == CatalogKind.weapon &&
           requirements.any((r) => r.kind == 'talent')) {
@@ -296,12 +303,16 @@ class CatalogRecord {
         _fail(id, 'tabla de experiencia incompleta');
       }
       if (!pending.contains('requirements')) {
-        if (requirements.where((r) => r.kind == 'ascension').length != 6) {
+        final ascensions = kind == CatalogKind.weapon && (rarity ?? 0) <= 2 ? 4 : 6;
+        if (requirements.where((r) => r.kind == 'ascension').length != ascensions || requirements.any((r) => r.kind == 'ascension' && r.stage > ascensions)) {
           _fail(id, 'ascensiones incompletas');
         }
-        if (kind == CatalogKind.character &&
-            requirements.where((r) => r.kind == 'talent').length != 9) {
-          _fail(id, 'talentos incompletos');
+        if (kind == CatalogKind.character) {
+          final talents = requirements.where((r) => r.kind == 'talent').toList();
+          final indexed = talents.any((r) => r.talentIndex >= 0);
+          if (indexed ? talents.any((r) => r.talentIndex < 0) || [0,1,2].any((i) => talents.where((r) => r.talentIndex == i).length != 9) : talents.length != 9) {
+            _fail(id, 'talentos incompletos o tablas mezcladas');
+          }
         }
       }
       progression = ProgressionData._(
@@ -311,6 +322,7 @@ class CatalogRecord {
         maxLevel,
         List.unmodifiable(requirements),
         List.unmodifiable(experience),
+        json['calculationProfile'] == null ? null : _string(json['calculationProfile'], id),
       );
     } else if (kind == CatalogKind.material) {
       material = MaterialData._(
@@ -410,7 +422,7 @@ class CatalogBundle {
       _fail('archivo', 'JSON mal formado');
     }
     final json = _object(decoded, 'catalog');
-    _integer(json['schemaVersion'], 'schemaVersion', 1, 1);
+    _integer(json['schemaVersion'], 'schemaVersion', 1, 2);
     final version = _string(json['version'], 'version');
     if (!RegExp(r'^[a-zA-Z0-9._-]{1,80}$').hasMatch(version)) {
       _fail('version', 'formato inválido');

@@ -1,5 +1,7 @@
 # Catálogo inicial — Fase 2
 
+Actualización Fase 3 (2026-11-23): el catálogo histórico se conserva sin modificar. Las calculadoras incorporan tablas de EXP y límites en un paquete de reglas separado para los seis perfiles revisados; véase [CALCULADORAS.md](CALCULADORAS.md).
+
 ## Alcance real
 
 El paquete `assets/catalog/seed-v1.json` contiene 92 registros: Amber, Kaeya, Lisa; Arco de Favonius, Espada del Alba y Cuentos de Cazadores de Dragones; 58 materiales referenciados; 24 niveles de dominios y 4 jefes. Es un catálogo inicial curado, no todos los personajes y armas del juego.

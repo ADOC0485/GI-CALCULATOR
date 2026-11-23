@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/catalog.dart';
 import 'catalog_provider.dart';
+import '../../progression/presentation/progression_dialog.dart';
 
 String kindLabel(CatalogKind kind) => switch (kind) {
   CatalogKind.character => 'Personajes',
@@ -146,7 +147,19 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
                             : 'Pendiente de verificación',
                       ].join(' · '),
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: record.progression == null
+                        ? const Icon(Icons.chevron_right)
+                        : TextButton.icon(
+                            icon: const Icon(Icons.calculate_outlined),
+                            label: const Text('Calcular'),
+                            onPressed: () => showDialog<void>(
+                              context: context,
+                              builder: (_) => ProgressionDialog(
+                                bundle: bundle,
+                                record: record,
+                              ),
+                            ),
+                          ),
                     onTap: () => showDialog<void>(
                       context: context,
                       builder: (_) =>

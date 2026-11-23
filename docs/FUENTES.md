@@ -1,5 +1,7 @@
 # Investigación de fuentes — 2026-11-15
 
+Actualización 2026-11-23: Fase 3 incorpora tablas numéricas de EXP de paimon-moe bajo MIT y reglas de deseos contrastadas con soporte oficial y fuentes comunitarias. Revisión fija, URLs, alcance y supuestos en [CALCULADORAS.md](CALCULADORAS.md). No se incorporan imágenes, voces ni textos narrativos del juego.
+
 Actualización 2026-11-19: se incorporó el extracto factual de genshin-db descrito en [CATALOGO.md](CATALOGO.md), fijado al commit `8e5badd60b5d894284ccc927a56c9683529d2592`, con atribución MIT. La versión 7.2 se contrastó con https://genshin.hoyoverse.com/m/es/news/detail/167131 . Los párrafos siguientes conservan el diagnóstico de Fase 0; la cobertura y los pendientes vigentes están en CATALOGO.md.
 
 ## Candidata principal: genshin-db

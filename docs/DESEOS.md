@@ -1,5 +1,7 @@
 # Calculadora de deseos — ampliación solicitada
 
+Actualización 2026-11-23: motor, formulario y escenarios implementados en Fase 3. Reglas, convenciones de tiempo y fuentes en [CALCULADORAS.md](CALCULADORAS.md). El texto siguiente conserva la especificación original.
+
 Solicitud del usuario durante Fase 1: añadir una proyección de deseos basada en recursos actuales, días hasta una fecha objetivo, Bendición lunar, encargos y otras recompensas. El diseño se incorpora ahora; motor y pruebas de cálculo se implementarán en Fase 3, con reglas verificadas en Fase 2.
 
 ## Flujo previsto

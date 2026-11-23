@@ -66,6 +66,8 @@ void main() {
       } else if (section == AppSection.characters ||
           section == AppSection.weapons) {
         expect(find.textContaining('Catálogo inicial'), findsOneWidget);
+      } else if (section == AppSection.wishes) {
+        expect(find.text('Calculadora de deseos'), findsOneWidget);
       } else {
         expect(find.text('Este espacio está en preparación'), findsOneWidget);
       }

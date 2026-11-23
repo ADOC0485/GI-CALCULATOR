@@ -4,16 +4,18 @@ Aplicación prevista en Flutter y Dart para planificar personajes, armas, invent
 
 ## Estado
 
-Fase 1 cerrada. Fase 2 implementada y validada, pendiente de aprobación: catálogo inicial de 92 registros, consulta de personajes/armas/materiales/actividades e importación versionada. Las calculadoras, el inventario y la agenda funcional se implementarán en sus fases, después de aprobación.
+Fases 1 y 2 aprobadas. Fase 3 implementada y validada automáticamente, pendiente de revisión visual y aprobación: calculadoras de personajes, armas, talentos y deseos, con escenarios locales. Catálogo inicial de 92 registros; progresión habilitada para sus tres personajes y tres armas. Inventario y agenda funcional se implementarán en sus fases, después de aprobación.
 
 - [Plan técnico y arquitectura](docs/PLAN_TECNICO.md)
 - [Verificaciones del entorno](docs/FASE_0.md)
 - [Cierre y validación de Fase 1](docs/FASE_1.md)
 - [Entrega y validación de Fase 2](docs/FASE_2.md)
+- [Entrega y validación de Fase 3](docs/FASE_3.md)
 - [Fuentes y política de datos](docs/FUENTES.md)
 - [Mockup conceptual de Windows](docs/mockups/README.md)
 - [Alcance de la calculadora de deseos](docs/DESEOS.md)
 - [Catálogo, fuentes, formato e importación](docs/CATALOGO.md)
+- [Calculadoras: uso, fuentes y reglas](docs/CALCULADORAS.md)
 
 ## Desarrollo en Windows
 
@@ -36,7 +38,8 @@ La base `genshin_progress_planner.sqlite` se abre en el directorio de soporte de
 
 - `lib/app`: tema, router y navegación de escritorio.
 - `lib/core/presentation`: composición visual compartida.
-- `lib/data/database`: SQLite con Drift, esquema 2 y migración desde esquema 1.
+- `lib/data/database`: SQLite con Drift, esquema 3 y migraciones desde esquemas 1 y 2.
+- `lib/features/progression` y `lib/features/wishes`: motores Dart, formularios y escenarios de cálculo.
 - `lib/features/catalog`: modelos, validación, importación transaccional y consulta del catálogo.
 - `lib/features/settings`: entidad e interfaz Dart puro, repositorio Drift y controlador Riverpod.
 - `lib/features/dashboard`: pantalla inicial con estados vacíos.

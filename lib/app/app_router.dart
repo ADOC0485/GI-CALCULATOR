@@ -7,6 +7,7 @@ import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/catalog/domain/catalog.dart';
 import '../features/catalog/presentation/catalog_page.dart';
+import '../features/wishes/presentation/wishes_page.dart';
 import 'app_shell.dart';
 import 'navigation.dart';
 
@@ -25,6 +26,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               builder: (context, state) => switch (section) {
                 AppSection.dashboard => const DashboardPage(),
                 AppSection.settings => const SettingsPage(),
+                AppSection.wishes => const WishesPage(),
                 AppSection.characters => const CatalogPage(
                   key: ValueKey('characters'),
                   initialKind: CatalogKind.character,

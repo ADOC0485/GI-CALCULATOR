@@ -232,7 +232,7 @@ void main() {
         (await db.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        2,
+        3,
       );
       expect(
         (await DriftPreferencesRepository(db).load()).appearance,

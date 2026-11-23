@@ -12,6 +12,7 @@ import 'package:genshin_progress_planner/features/catalog/data/drift_catalog_rep
 import 'package:genshin_progress_planner/features/settings/data/drift_preferences_repository.dart';
 import 'package:genshin_progress_planner/features/settings/domain/app_preferences.dart';
 import 'package:genshin_progress_planner/features/settings/presentation/preferences_controller.dart';
+import 'package:genshin_progress_planner/features/progression/data/scenario_repository.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +52,34 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationRail),
+          matching: find.text('Deseos'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Protogemas'),
+        '8000',
+      );
+      await tester.scrollUntilVisible(
+        find.text('Guardar escenario'),
+        500,
+        scrollable: find
+            .descendant(
+              of: find.byType(ListView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(find.text('Guardar escenario'));
+      await tester.pumpAndSettle();
+      expect(
+        (await ScenarioRepository(firstDb)
+            .load('wishes'))!['fields']['Protogemas'],
+        '8000',
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationRail),
           matching: find.text('Inicio'),
         ),
       );
@@ -83,6 +112,11 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Tu próxima aventura'), findsOneWidget);
+      expect(
+        (await ScenarioRepository(secondDb)
+            .load('wishes'))!['fields']['Protogemas'],
+        '8000',
+      );
       expect(
         (await DriftCatalogRepository(secondDb).loadActive())!.records.length,
         92,

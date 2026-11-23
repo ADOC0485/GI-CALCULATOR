@@ -106,7 +106,7 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(width: 10),
             const Expanded(
               child: Text(
-                'Catálogo inicial disponible · Las calculadoras y la planificación están en preparación. Los datos pendientes se indican en cada ficha.',
+                'Calculadoras disponibles: personajes, armas, talentos y deseos. Inventario y planificación siguen en preparación.',
               ),
             ),
           ],
