@@ -46,8 +46,20 @@ void main() {
       throwsA(isA<CalculationException>()),
     );
     expect(LeyLineRates.checkAccount(8, 57), isNull);
-    expect(LeyLineRates.checkAccount(7, 57), isNull); // lowered by one
-    expect(LeyLineRates.checkAccount(4, 57), isNotNull);
+    expect(LeyLineRates.checkAccount(7, 57), isNotNull); // lowered by one
+    Matcher impossible = throwsA(isA<CalculationException>());
+    expect(() => LeyLineRates.checkAccount(4, 57), impossible);
+    // AR 58: World Level 9 needs its quest, so 8 is sure and 7 is the floor.
+    expect(() => LeyLineRates.checkAccount(1, 58), impossible);
+    expect(() => LeyLineRates.checkAccount(6, 58), impossible);
+    expect(LeyLineRates.checkAccount(7, 58), isNotNull);
+    expect(LeyLineRates.checkAccount(8, 58), isNull);
+    expect(LeyLineRates.checkAccount(9, 60), isNull);
+    // AR 25 before the ascension quest is still World Level 1.
+    expect(LeyLineRates.checkAccount(0, 25), isNotNull);
+    expect(LeyLineRates.checkAccount(2, 25), isNull);
+    expect(() => LeyLineRates.checkAccount(3, 25), impossible);
+    expect(LeyLineRates.checkAccount(0, 10), isNull);
   });
 
   test('Names and pictures arrive with the catalog', () {

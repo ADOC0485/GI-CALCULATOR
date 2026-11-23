@@ -61,21 +61,43 @@ class LeyLineRates {
     return level;
   }
 
-  /// Checks a World Level against the Adventure Rank. Throws when it is
-  /// impossible; returns a hint when it is possible but unusual.
+  /// World Levels gated by an ascension quest: until it is done, the AR
+  /// stays capped at the unlock rank (World Level 9 does not cap the AR).
+  static const _questLevels = {2, 4, 6, 7, 9};
+
+  /// Lowest World Level the account surely has at [adventureRank]: reaching
+  /// a higher AR proves every earlier ascension quest was completed.
+  static int guaranteedFor(int adventureRank) {
+    final highest = highestFor(adventureRank);
+    return _questLevels.contains(highest) &&
+            adventureRank == unlockRank[highest]
+        ? highest - 1
+        : highest == maxWorldLevel
+        ? highest - 1
+        : highest;
+  }
+
+  /// Checks a World Level against the Adventure Rank. The game lets players
+  /// lower their World Level by one, so anything below that is impossible.
+  /// Returns a hint when the level was lowered.
   static String? checkAccount(int worldLevel, int adventureRank) {
     require(
       adventureRank >= 1 && adventureRank <= 60,
       'El rango de aventura (AR) va de 1 a 60.',
     );
     final highest = highestFor(adventureRank);
+    final lowest = (guaranteedFor(adventureRank) - 1).clamp(0, highest);
     require(
       worldLevel <= highest,
       'Con AR $adventureRank el nivel de mundo máximo es $highest. Revisa ambos datos.',
     );
-    if (worldLevel < highest - 1) {
-      return 'Con AR $adventureRank lo normal es nivel de mundo $highest '
-          '(o ${highest - 1} si lo bajaste o te falta la misión de ascenso).';
+    require(
+      worldLevel >= lowest,
+      'Con AR $adventureRank tu nivel de mundo es al menos $lowest '
+      '(el juego solo deja bajarlo un nivel). Revisa ambos datos.',
+    );
+    if (worldLevel < guaranteedFor(adventureRank)) {
+      return 'Nivel de mundo bajado: las líneas ley se calculan con el $worldLevel.';
     }
     return null;
   }
