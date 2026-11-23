@@ -47,7 +47,11 @@ void main() {
       ProviderScope(
         overrides: [latestReleaseProvider.overrideWith((ref) async => release)],
         child: const MaterialApp(
-          home: Scaffold(body: Column(children: [UpdateBanner(), AboutCard()])),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(children: [UpdateBanner(), AboutCard()]),
+            ),
+          ),
         ),
       ),
     );
@@ -73,6 +77,17 @@ void main() {
     );
     expect(find.byKey(const ValueKey('update-banner')), findsNothing);
     expect(find.text('Tienes la última versión publicada.'), findsOneWidget);
+  });
+
+  testWidgets('Settings shows the unofficial-project notice and credits', (tester) async {
+    await mount(tester, null);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('unofficial-notice')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.textContaining('No está afiliada'), findsOneWidget);
+    expect(find.textContaining('genshin-api'), findsOneWidget);
   });
 
   testWidgets('Without GitHub (offline): no banner, a calm message', (tester) async {

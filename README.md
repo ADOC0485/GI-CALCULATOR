@@ -1,6 +1,19 @@
 # Genshin Progress Planner
 
-Aplicación prevista en Flutter y Dart para planificar personajes, armas, inventario y farmeo de Genshin Impact. Windows primero; Android después de aprobar Windows. Funcionamiento local, sin cuentas ni servicios de nube.
+Aplicación en Flutter y Dart para Windows y Android que planifica personajes, armas, talentos, inventario, resina y farmeo de Genshin Impact. Sin cuentas: tus datos se guardan en tu dispositivo, y solo usa internet para actualizar el catálogo del juego y avisar de versiones nuevas.
+
+> **Proyecto no oficial.** App hecha por fans, sin afiliación, respaldo ni patrocinio de HoYoverse ni COGNOSPHERE. Genshin Impact, sus personajes, imágenes y contenido del juego son marcas y propiedad de HoYoverse / COGNOSPHERE. La app es gratuita y no usa ni pide tu cuenta del juego. Si eres titular de derechos y quieres que se retire algún contenido, [abre un issue](https://github.com/ADOC0485/GI-CALCULATOR/issues).
+
+## Descargar
+
+Android: descarga el APK de la [última versión](https://github.com/ADOC0485/GI-CALCULATOR/releases/latest). La app avisa sola cuando hay una versión nueva y se actualiza encima sin perder tus datos.
+
+## Créditos de los datos
+
+- Personajes, armas, materiales e imágenes: [genshin-api](https://github.com/devesh-anand/genshin-api) (devesh-anand), que usa yatta.moe, Enka.Network y la wiki de Fandom.
+- Nombres en español y catálogo inicial: [genshin-db](https://github.com/theBowja/genshin-db) (theBowja), licencia MIT.
+- Tablas de EXP: [paimon-moe](https://github.com/MadeBaruna/paimon-moe) (MadeBaruna), licencia MIT.
+- Promedios de recompensas y líneas ley: guías y wikis de la comunidad (ver [docs/FUENTES.md](docs/FUENTES.md)).
 
 ## Estado
 

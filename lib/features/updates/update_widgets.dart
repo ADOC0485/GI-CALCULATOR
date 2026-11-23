@@ -35,6 +35,23 @@ void _showNotes(BuildContext context, AppRelease release) => showDialog<void>(
   ),
 );
 
+/// Shown in Settings and in the README.
+const unofficialNotice =
+    'Esta es una app hecha por fans. No está afiliada, respaldada ni '
+    'patrocinada por HoYoverse ni COGNOSPHERE. Genshin Impact, sus personajes, '
+    'imágenes y contenido del juego son marcas y propiedad de HoYoverse / '
+    'COGNOSPHERE. La app es gratuita y no usa ni pide tu cuenta del juego. '
+    'Si eres titular de derechos y quieres que se retire algún contenido, '
+    'abre un issue en el repositorio de GitHub.';
+
+const dataCredits = [
+  'Personajes, armas, materiales e imágenes: genshin-api (devesh-anand), '
+      'que a su vez usa yatta.moe, Enka.Network y la wiki de Fandom.',
+  'Nombres en español y catálogo inicial: genshin-db (theBowja), licencia MIT.',
+  'Tablas de EXP: paimon-moe (MadeBaruna), licencia MIT.',
+  'Promedios de recompensas y líneas ley: guías y wikis de la comunidad.',
+];
+
 const _howToInstall =
     'Se descarga desde GitHub. Ábrelo y toca «Actualizar»: se instala encima '
     'y conservas todos tus datos.';
@@ -169,6 +186,14 @@ class AboutCard extends ConsumerWidget {
                 padding: EdgeInsets.only(top: 12),
                 child: Text(_howToInstall),
               ),
+            const Divider(height: 40),
+            Text('Proyecto no oficial', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            const Text(unofficialNotice, key: ValueKey('unofficial-notice')),
+            const SizedBox(height: 12),
+            Text('Créditos de los datos', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 4),
+            for (final line in dataCredits) Text('• $line'),
           ],
         ),
       ),
