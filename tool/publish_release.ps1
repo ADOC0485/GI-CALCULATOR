@@ -1,4 +1,4 @@
-<#
+﻿<#
 Publica una versión nueva de la app en GitHub Releases.
 
 Uso (desde la carpeta del proyecto):
