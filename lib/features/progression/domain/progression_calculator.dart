@@ -51,6 +51,22 @@ class ProgressionRules {
   static const talentCaps = [1, 1, 2, 4, 6, 8, 10];
 }
 
+/// Level caps a level can show in game: 50 can be 50/50 or 50/60.
+List<int> capsForLevel(int level) => [
+  for (var a = 0; a < ProgressionRules.caps.length; a++)
+    if (level >= ProgressionRules.floors[a] && level <= ProgressionRules.caps[a])
+      ProgressionRules.caps[a],
+];
+
+/// Ascension phase for a level as shown in game; [ascended] only matters
+/// when the level sits on a cap (50/50 vs 50/60).
+int ascensionFor(int level, {bool ascended = false}) {
+  final caps = capsForLevel(level);
+  require(caps.isNotEmpty, 'El nivel debe estar entre 1 y 90.');
+  final cap = ascended && caps.length > 1 ? caps[1] : caps.first;
+  return ProgressionRules.caps.indexOf(cap);
+}
+
 class ProgressionState {
   const ProgressionState({
     required this.level,

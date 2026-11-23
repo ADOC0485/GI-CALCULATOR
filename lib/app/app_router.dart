@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/presentation/pending_page.dart';
+import '../features/builds/presentation/build_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/catalog/domain/catalog.dart';
@@ -38,6 +39,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 _ => PendingPage(section: section),
               },
             ),
+          GoRoute(
+            path: '/build/:id',
+            builder: (context, state) => BuildPage(
+              key: ValueKey(state.pathParameters['id']),
+              buildId: state.pathParameters['id']!,
+            ),
+          ),
         ],
       ),
     ],

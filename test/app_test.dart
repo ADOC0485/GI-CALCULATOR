@@ -11,6 +11,7 @@ import 'package:genshin_progress_planner/features/settings/presentation/preferen
 
 import 'support/memory_preferences_repository.dart';
 
+import 'package:genshin_progress_planner/features/builds/data/build_repository.dart';
 import 'package:genshin_progress_planner/features/catalog/domain/catalog.dart';
 import 'package:genshin_progress_planner/features/catalog/presentation/catalog_provider.dart';
 
@@ -32,6 +33,7 @@ Future<ProviderContainer> mountApp(
     retry: (count, error) => null,
     overrides: [
       preferencesRepositoryProvider.overrideWithValue(repository),
+      buildsProvider.overrideWith((ref) async => []),
       catalogProvider.overrideWith(
         (ref) async => CatalogBundle.parse(
           File('assets/catalog/seed-v1.json').readAsStringSync(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/presentation/page_frame.dart';
+import '../../builds/presentation/build_page.dart';
 import '../../settings/presentation/theme_toggle_button.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -64,11 +65,7 @@ class DashboardPage extends StatelessWidget {
         LayoutBuilder(
           builder: (context, constraints) {
             final cards = [
-              const _OverviewCard(
-                icon: Icons.flag_outlined,
-                title: 'Tus objetivos',
-                message: 'Aún no hay proyectos de progresión.',
-              ),
+              const BuildsCard(),
               const _OverviewCard(
                 icon: Icons.calendar_today_outlined,
                 title: 'Tu agenda',
@@ -102,7 +99,7 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(width: 10),
             const Expanded(
               child: Text(
-                'Calculadoras disponibles: personajes, armas, talentos y deseos. Inventario y planificación siguen en preparación.',
+                'Añade una build para ver qué te falta y cómo repartir la resina cada día. También tienes calculadoras de personajes, armas, talentos y deseos.',
               ),
             ),
           ],

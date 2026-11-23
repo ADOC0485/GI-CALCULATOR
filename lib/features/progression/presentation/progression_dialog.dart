@@ -17,12 +17,6 @@ final progressionRulesProvider = FutureProvider(
 const _talentNames = ['Ataque normal', 'Habilidad elemental', 'Definitiva'];
 const _talentKeys = ['Ataque', 'Habilidad', 'Definitiva'];
 
-/// Level caps a level can show in game: 50 can be 50/50 or 50/60.
-List<int> capsForLevel(int level) => [
-  for (var a = 0; a < ProgressionRules.caps.length; a++)
-    if (level >= ProgressionRules.floors[a] && level <= ProgressionRules.caps[a])
-      ProgressionRules.caps[a],
-];
 
 class ProgressionDialog extends ConsumerStatefulWidget {
   const ProgressionDialog({
