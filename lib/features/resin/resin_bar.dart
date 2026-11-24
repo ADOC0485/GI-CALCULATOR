@@ -175,13 +175,13 @@ class _ResinBarState extends ConsumerState<ResinBar> {
                             Text('Total ${resin.totalAt(now)}', style: small),
                             if (_wallet case final wallet?) ...[
                               extra(
-                                Icons.auto_awesome,
+                                Icons.auto_awesome_outlined,
                                 wallet.primogems,
                                 Colors.yellowAccent,
                               ),
                               if (wallet.genesis > 0)
                                 extra(
-                                  Icons.diamond_outlined,
+                                  Icons.star,
                                   wallet.genesis,
                                   Colors.deepPurpleAccent,
                                 ),
@@ -291,14 +291,14 @@ class _ResinBarState extends ConsumerState<ResinBar> {
                   ),
                   if (_wallet case final wallet?) ...[
                     pill(
-                      Icons.auto_awesome,
+                      Icons.auto_awesome_outlined,
                       '${wallet.primogems}',
                       tooltip: 'Protogemas',
                       color: Colors.yellowAccent,
                     ),
                     if (wallet.genesis > 0)
                       pill(
-                        Icons.diamond_outlined,
+                        Icons.star,
                         '${wallet.genesis}',
                         tooltip: 'Cristales génesis',
                         color: Colors.deepPurpleAccent,
@@ -496,7 +496,7 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
               primogems,
               'Protogemas',
               'Las que tienes en el juego. Los encargos diarios suman 60 al marcarlos.',
-              Icons.auto_awesome,
+              Icons.auto_awesome_outlined,
               Colors.yellowAccent,
               const ValueKey('wallet-primogems'),
             ),
@@ -504,7 +504,7 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
               genesis,
               'Cristales',
               'Cristales génesis (los de la tienda).',
-              Icons.diamond_outlined,
+              Icons.star,
               Colors.deepPurpleAccent,
               const ValueKey('wallet-genesis'),
             ),
@@ -513,7 +513,7 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
               'Mora/encargos',
               'Mora que suman los encargos diarios al marcarlos. Depende de tu '
                   'rango de aventura: pon la que te den en el juego.',
-              Icons.monetization_on_outlined,
+              Icons.star_border,
               Colors.amber,
               const ValueKey('wallet-commission-mora'),
             ),

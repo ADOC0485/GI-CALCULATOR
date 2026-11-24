@@ -60,7 +60,9 @@ if (-not (Test-Path $shorebird)) {
   throw 'No encontré Shorebird. Instálalo e inicia sesión (ver docs\PUBLICAR.md).'
 }
 Write-Host "Compilando $etiqueta (código $codigo) con Shorebird..."
-& $shorebird release android --artifact apk --flutter-version=$VersionFlutter
+# --no-tree-shake-icons keeps every Material icon in the APK, so later
+# patches can use icons this version did not use yet.
+& $shorebird release android --artifact apk --flutter-version=$VersionFlutter --no-tree-shake-icons
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación o el registro en Shorebird.' }
 
 New-Item -ItemType Directory -Force build\release | Out-Null

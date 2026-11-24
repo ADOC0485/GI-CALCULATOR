@@ -540,7 +540,7 @@ class DoneTodayTiles extends ConsumerWidget {
             contentPadding: EdgeInsets.zero,
             value: true,
             onChanged: (_) => undoTask(context, ref, t),
-            secondary: const Icon(Icons.check_circle_outline),
+            secondary: const Icon(Icons.check_circle),
             title: Text(t.label),
             subtitle: t.original + t.condensed > 0
                 ? Text(
