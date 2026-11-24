@@ -64,6 +64,150 @@ class _ResinBarState extends ConsumerState<ResinBar> {
             label: Text(text),
           ),
         );
+    final server = ref.watch(activeServerProvider);
+    final daily = untilDailyReset(now, server);
+    final weekly = untilWeeklyReset(now, server);
+    void edit() =>
+        showDialog<void>(context: context, builder: (_) => const ResinDialog());
+    return LayoutBuilder(
+      builder: (context, constraints) => constraints.maxWidth < 600
+          ? _compact(theme, resin, original, next, daily, weekly, now, edit)
+          : _wide(
+              theme,
+              resin,
+              original,
+              next,
+              full,
+              daily,
+              weekly,
+              server,
+              now,
+              pill,
+              edit,
+            ),
+    );
+  }
+
+  /// Phones: one slim strip. Tapping it opens the resin editor.
+  Widget _compact(
+    ThemeData theme,
+    ResinState resin,
+    int original,
+    Duration? next,
+    Duration daily,
+    Duration weekly,
+    DateTime now,
+    VoidCallback edit,
+  ) {
+    final small = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    Widget extra(IconData icon, int value, Color color) => Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 2),
+          Text('$value', style: theme.textTheme.labelMedium),
+        ],
+      ),
+    );
+    return Material(
+      color: theme.colorScheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 2, 4, 2),
+        child: Row(
+          children: [
+            const Flexible(child: ProfileSwitcher()),
+            const SizedBox(width: 8),
+            Expanded(
+              child: InkWell(
+                key: const ValueKey('resin-edit'),
+                borderRadius: BorderRadius.circular(8),
+                onTap: edit,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.nightlight_round,
+                              size: 16,
+                              color: Colors.lightBlueAccent,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$original/${ResinState.cap}',
+                              style: theme.textTheme.titleSmall,
+                            ),
+                            if (resin.condensed > 0)
+                              extra(
+                                Icons.hexagon_outlined,
+                                resin.condensed,
+                                Colors.amber,
+                              ),
+                            if (resin.fragile > 0)
+                              extra(
+                                Icons.water_drop_outlined,
+                                resin.fragile,
+                                Colors.cyan,
+                              ),
+                            if (resin.transient > 0)
+                              extra(
+                                Icons.hourglass_bottom,
+                                resin.transient,
+                                Colors.purpleAccent,
+                              ),
+                            const SizedBox(width: 8),
+                            Text('Total ${resin.totalAt(now)}', style: small),
+                          ],
+                        ),
+                      ),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '${next == null ? 'Llena' : '+1 en ${_clock(next)}'}'
+                          ' · reinicio ${_clock(daily)}'
+                          '${weekly.inDays >= 1 ? ' · sem. ${weekly.inDays} d' : ''}',
+                          key: const ValueKey('resin-timer'),
+                          style: small,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Tablets and computers: everything spelled out.
+  Widget _wide(
+    ThemeData theme,
+    ResinState resin,
+    int original,
+    Duration? next,
+    Duration? full,
+    Duration daily,
+    Duration weekly,
+    String server,
+    DateTime now,
+    Widget Function(IconData, String, {String? tooltip, Color? color}) pill,
+    VoidCallback edit,
+  ) {
     return Material(
       color: theme.colorScheme.surfaceContainerLow,
       child: Padding(
@@ -92,23 +236,16 @@ class _ResinBarState extends ConsumerState<ResinBar> {
                     key: const ValueKey('resin-timer'),
                     style: theme.textTheme.bodySmall,
                   ),
-                  Builder(
-                    builder: (context) {
-                      final server = ref.watch(activeServerProvider);
-                      final daily = untilDailyReset(now, server);
-                      final weekly = untilWeeklyReset(now, server);
-                      return Tooltip(
-                        message:
-                            'Reinicio a las 4:00 hora del servidor ($server). '
-                            'El semanal es el lunes a esa hora.',
-                        child: Text(
-                          'Reinicio en ${_clock(daily)}'
-                          '${weekly.inDays >= 1 ? ' · semanal en ${weekly.inDays} d' : ''}',
-                          key: const ValueKey('reset-timer'),
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      );
-                    },
+                  Tooltip(
+                    message:
+                        'Reinicio a las 4:00 hora del servidor ($server). '
+                        'El semanal es el lunes a esa hora.',
+                    child: Text(
+                      'Reinicio en ${_clock(daily)}'
+                      '${weekly.inDays >= 1 ? ' · semanal en ${weekly.inDays} d' : ''}',
+                      key: const ValueKey('reset-timer'),
+                      style: theme.textTheme.bodySmall,
+                    ),
                   ),
                   if (resin.condensed > 0)
                     pill(
@@ -141,10 +278,7 @@ class _ResinBarState extends ConsumerState<ResinBar> {
                     tooltip: 'Editar resina',
                     visualDensity: VisualDensity.compact,
                     icon: const Icon(Icons.edit_outlined, size: 20),
-                    onPressed: () => showDialog<void>(
-                      context: context,
-                      builder: (_) => const ResinDialog(),
-                    ),
+                    onPressed: edit,
                   ),
                 ],
               ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_update.dart';
+import 'code_push.dart';
 
 /// Opens the download: the APK on Android, the release page elsewhere.
 Future<bool> openUpdate(AppRelease release) {
@@ -22,7 +24,9 @@ void _showNotes(BuildContext context, AppRelease release) => showDialog<void>(
       width: 480,
       child: SingleChildScrollView(
         child: Text(
-          release.notes.trim().isEmpty ? 'Sin notas para esta versión.' : release.notes,
+          release.notes.trim().isEmpty
+              ? 'Sin notas para esta versión.'
+              : release.notes,
         ),
       ),
     ),
@@ -97,8 +101,9 @@ class UpdateBanner extends ConsumerWidget {
               spacing: 8,
               children: [
                 TextButton(
-                  onPressed: () =>
-                      ref.read(dismissedUpdateProvider.notifier).dismiss(release.version),
+                  onPressed: () => ref
+                      .read(dismissedUpdateProvider.notifier)
+                      .dismiss(release.version),
                   child: const Text('Ahora no'),
                 ),
                 TextButton(
@@ -112,7 +117,9 @@ class UpdateBanner extends ConsumerWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          opened ? _howToInstall : 'No se pudo abrir el enlace: $releasesPage',
+                          opened
+                              ? _howToInstall
+                              : 'No se pudo abrir el enlace: $releasesPage',
                         ),
                       ),
                     );
@@ -121,6 +128,69 @@ class UpdateBanner extends ConsumerWidget {
                   label: const Text('Actualizar'),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Banner shown when a patch (small fix) finished downloading: it is used the
+/// next time the app is opened. Shorebird downloads it by itself on launch,
+/// so this looks again a little later.
+class PatchBanner extends ConsumerStatefulWidget {
+  const PatchBanner({
+    super.key,
+    this.recheckAfter = const Duration(seconds: 45),
+  });
+  final Duration recheckAfter;
+  @override
+  ConsumerState<PatchBanner> createState() => _PatchBannerState();
+}
+
+class _PatchBannerState extends ConsumerState<PatchBanner> {
+  Timer? _recheck;
+  bool _hidden = false;
+
+  @override
+  void dispose() {
+    _recheck?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(patchStateProvider).asData?.value;
+    if (state != null &&
+        state.available &&
+        !state.restartRequired &&
+        _recheck == null) {
+      _recheck = Timer(widget.recheckAfter, () {
+        if (mounted) ref.invalidate(patchStateProvider);
+      });
+    }
+    if (_hidden || state == null || !state.restartRequired) {
+      return const SizedBox.shrink();
+    }
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Row(
+          children: [
+            const Icon(Icons.auto_fix_high_outlined),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Se descargó una mejora. Cierra y vuelve a abrir la app para usarla.',
+                key: ValueKey('patch-banner'),
+              ),
+            ),
+            TextButton(
+              onPressed: () => setState(() => _hidden = true),
+              child: const Text('Ok'),
             ),
           ],
         ),
@@ -139,6 +209,7 @@ class AboutCard extends ConsumerWidget {
     final latest = ref.watch(latestReleaseProvider);
     final release = latest.asData?.value;
     final newer = release != null && release.isNewerThan(appVersion);
+    final patch = ref.watch(patchStateProvider).asData?.value;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(28),
@@ -147,7 +218,16 @@ class AboutCard extends ConsumerWidget {
           children: [
             Text('Versión de la app', style: theme.textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text('Tienes la v$appVersion.', key: const ValueKey('app-version')),
+            Text(
+              'Tienes la v$appVersion'
+              '${patch?.current != null ? ' (parche ${patch!.current})' : ''}.',
+              key: const ValueKey('app-version'),
+            ),
+            if (patch?.restartRequired ?? false)
+              Text(
+                'Hay una mejora descargada: cierra y vuelve a abrir la app para usarla.',
+                style: TextStyle(color: theme.colorScheme.primary),
+              ),
             const SizedBox(height: 8),
             if (latest.isLoading)
               const LinearProgressIndicator()
@@ -169,7 +249,27 @@ class AboutCard extends ConsumerWidget {
               children: [
                 OutlinedButton.icon(
                   key: const ValueKey('check-updates'),
-                  onPressed: () => ref.invalidate(latestReleaseProvider),
+                  onPressed: () async {
+                    ref.invalidate(latestReleaseProvider);
+                    if (!(patch?.available ?? false)) return;
+                    final messenger = ScaffoldMessenger.of(context);
+                    var downloaded = false;
+                    try {
+                      downloaded = await ref
+                          .read(codePushProvider)
+                          .downloadUpdate();
+                    } catch (_) {}
+                    ref.invalidate(patchStateProvider);
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          downloaded
+                              ? 'Mejora descargada: cierra y vuelve a abrir la app para usarla.'
+                              : 'No hay mejoras nuevas por ahora.',
+                        ),
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.refresh),
                   label: const Text('Buscar actualizaciones'),
                 ),

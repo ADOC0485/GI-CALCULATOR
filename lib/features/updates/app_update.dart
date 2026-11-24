@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Version of this build. Keep it equal to `version:` in pubspec.yaml
 /// (a test checks it); publishing bumps both.
-const appVersion = '0.2.2';
+const appVersion = '0.3.0';
 
 /// Repository whose GitHub Releases carry new versions of the app.
 const releasesRepository = 'ADOC0485/GI-CALCULATOR';
@@ -30,7 +30,13 @@ class AppRelease {
 /// Compares "1.2.3" style versions (a leading "v" is ignored).
 int compareVersions(String a, String b) {
   List<int> parts(String v) => [
-    for (final p in v.trim().replaceFirst(RegExp('^[vV]'), '').split('+').first.split('.'))
+    for (final p
+        in v
+            .trim()
+            .replaceFirst(RegExp('^[vV]'), '')
+            .split('+')
+            .first
+            .split('.'))
       int.tryParse(p) ?? 0,
   ];
   final x = parts(a), y = parts(b);

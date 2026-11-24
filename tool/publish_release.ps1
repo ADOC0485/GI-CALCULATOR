@@ -11,10 +11,13 @@ Antes de ejecutarlo:
   3. Ten android/key.properties con tu llave de firma (ver docs/PUBLICAR.md).
 
 Las apps instaladas verán el aviso «Hay una versión nueva» al abrirse.
+Para arreglos pequeños sin reinstalar usa tool\publish_patch.ps1.
 #>
 param(
   [Parameter(Mandatory = $true)][string]$Notas,
-  [string]$Repositorio = 'ADOC0485/GI-CALCULATOR'
+  [string]$Repositorio = 'ADOC0485/GI-CALCULATOR',
+  # Flutter version the APK is built with; patches reuse it automatically.
+  [string]$VersionFlutter = '3.47.5'
 )
 # git, gh and flutter print progress on stderr, which Windows PowerShell
 # treats as an error under 'Stop'; each step checks its exit code instead.
@@ -49,9 +52,16 @@ if ($LASTEXITCODE -eq 0) {
   throw "La versión $etiqueta ya está publicada. Sube el número de versión."
 }
 
-Write-Host "Compilando $etiqueta (código $codigo)..."
-flutter build apk --release
-if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación del APK.' }
+# Shorebird compiles the APK with its updater inside, so this version can
+# receive patches later (tool\publish_patch.ps1) without reinstalling.
+$shorebird = (Get-Command shorebird -ErrorAction SilentlyContinue).Source
+if (-not $shorebird) { $shorebird = "$HOME\.shorebird\bin\shorebird.bat" }
+if (-not (Test-Path $shorebird)) {
+  throw 'No encontré Shorebird. Instálalo e inicia sesión (ver docs\PUBLICAR.md).'
+}
+Write-Host "Compilando $etiqueta (código $codigo) con Shorebird..."
+& $shorebird release android --artifact apk --flutter-version=$VersionFlutter
+if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación o el registro en Shorebird.' }
 
 New-Item -ItemType Directory -Force build\release | Out-Null
 $apk = "build\release\GenshinProgressPlanner-$etiqueta.apk"

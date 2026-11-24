@@ -1,5 +1,12 @@
 # Publicar versiones y actualizaciones
 
+Hay dos formas de hacer llegar cambios:
+
+- **Parche** (lo normal para arreglos pequeños): llega solo a las apps
+  instaladas, sin GitHub ni reinstalar. Ver [Parches](#parches-sin-reinstalar).
+- **Versión nueva**: un APK en GitHub que se instala encima. Hace falta para
+  cambios de Android, imágenes y archivos de `assets/`, o paquetes nuevos.
+
 Las apps instaladas consultan al abrirse la última versión publicada en
 [GitHub Releases](https://github.com/ADOC0485/GI-CALCULATOR/releases). Si es más
 nueva que la suya, muestran «Hay una versión nueva» y el botón **Actualizar**
@@ -39,8 +46,48 @@ probar, pero no puede actualizar la app publicada.
    ```
 
 El script comprueba la llave, la versión y que todo esté subido, compila el
-APK firmado y crea la versión `vX.Y.Z` en GitHub con el APK adjunto. El
+APK firmado **con Shorebird** (para que luego pueda recibir parches), lo
+registra en Shorebird y crea la versión `vX.Y.Z` en GitHub con el APK adjunto.
+Shorebird puede preguntar si quieres continuar: responde `y`. El
 repositorio es público: cualquiera puede ver y descargar cada versión.
 
 Los datos del juego (personajes, armas, materiales) no necesitan una versión
 nueva: se actualizan con «Actualizar desde internet» en el catálogo.
+
+## Parches sin reinstalar
+
+Usa [Shorebird](https://shorebird.dev). Una vez por computadora:
+
+1. Instala Shorebird:
+
+   ```powershell
+   git clone -b stable https://github.com/shorebirdtech/shorebird.git "$HOME\.shorebird"
+   [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$HOME\.shorebird\bin", "User")
+   ```
+
+2. Abre una PowerShell nueva y entra con tu cuenta: `shorebird login`.
+
+`shorebird.yaml` ya conecta el proyecto con la app en Shorebird; su `app_id`
+no es secreto.
+
+Para mandar un parche:
+
+1. Haz el cambio **sin** tocar la versión de `pubspec.yaml`.
+2. Commit y push.
+3. Ejecuta:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File tool\publish_patch.ps1
+   ```
+
+Las apps lo descargan solas al abrirse y lo usan la siguiente vez que se
+abren; también aparece un aviso «Se descargó una mejora». En Ajustes se ve
+el número de parche, y «Buscar actualizaciones» también busca parches.
+
+Un parche **no** puede cambiar imágenes ni archivos de `assets/`, nada de
+`android/` (ícono, permisos) ni paquetes con código nativo: Shorebird lo
+detecta y se detiene. Para eso publica una versión nueva. Si un parche sale
+mal, se puede retirar desde [console.shorebird.dev](https://console.shorebird.dev).
+
+Solo reciben parches las apps instaladas desde una versión compilada con
+Shorebird (desde la v0.3.0).

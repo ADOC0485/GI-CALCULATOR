@@ -119,6 +119,7 @@ class AppShell extends ConsumerWidget {
                     children: [
                       const ResinBar(),
                       const UpdateBanner(),
+                      const PatchBanner(),
                       Expanded(child: child),
                     ],
                   ),

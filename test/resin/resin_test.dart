@@ -16,7 +16,10 @@ void main() {
     expect(r.originalAt(t0), 20);
     expect(r.originalAt(t0.add(const Duration(minutes: 7, seconds: 59))), 20);
     expect(r.originalAt(t0.add(const Duration(minutes: 8))), 21);
-    expect(r.nextIn(t0.add(const Duration(minutes: 3))), const Duration(minutes: 5));
+    expect(
+      r.nextIn(t0.add(const Duration(minutes: 3))),
+      const Duration(minutes: 5),
+    );
     // 180 points left × 8 minutes = 24 hours.
     expect(r.fullIn(t0), const Duration(hours: 24));
     expect(r.originalAt(t0.add(const Duration(days: 3))), 200);
@@ -89,6 +92,39 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('resin-save')));
     await tester.pumpAndSettle();
     expect(find.textContaining('Solo puedes tener 5'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('On a phone the top bar is one slim strip', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          resinClockProvider.overrideWithValue(() => t0),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: Column(children: [ResinBar()])),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('resin-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('resin-original')), '37');
+    await tester.enterText(find.byKey(const ValueKey('resin-condensed')), '2');
+    await tester.enterText(find.byKey(const ValueKey('resin-fragile')), '4');
+    await tester.enterText(find.byKey(const ValueKey('resin-transient')), '1');
+    await tester.tap(find.byKey(const ValueKey('resin-save')));
+    await tester.pumpAndSettle();
+    expect(find.text('37/200'), findsOneWidget);
+    expect(find.textContaining('reinicio'), findsOneWidget);
+    expect(tester.getSize(find.byType(ResinBar)).height, lessThan(64));
+    expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });
 }

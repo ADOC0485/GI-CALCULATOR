@@ -179,7 +179,14 @@ class ProfileSwitcher extends ConsumerWidget {
           children: [
             ProfileAvatar(profile: active, radius: 16),
             const SizedBox(width: 8),
-            Text(active.name, style: Theme.of(context).textTheme.labelLarge),
+            Flexible(
+              child: Text(
+                active.name,
+                style: Theme.of(context).textTheme.labelLarge,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             const Icon(Icons.arrow_drop_down),
           ],
         ),
