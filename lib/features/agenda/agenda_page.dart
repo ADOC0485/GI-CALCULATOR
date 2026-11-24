@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/presentation/page_frame.dart';
+import '../tasks/task_completion.dart';
+import '../tasks/task_log.dart';
 import '../builds/data/build_repository.dart';
 import '../profiles/profile.dart';
 import '../builds/domain/build.dart';
@@ -20,7 +22,12 @@ import '../progression/presentation/progression_dialog.dart'
 /// Every build planned together: one resin budget, builds in list order.
 /// How much of a build is already covered by the inventory.
 class BuildProgress {
-  const BuildProgress(this.have, this.needed, this.expMissing, this.moraMissing);
+  const BuildProgress(
+    this.have,
+    this.needed,
+    this.expMissing,
+    this.moraMissing,
+  );
 
   /// Material items owned (or crafted from spares) out of those needed.
   final int have, needed;
@@ -47,6 +54,7 @@ AgendaPlan planAgenda({
   required DateTime start,
   int startResin = 180,
   int startCondensed = 0,
+  Set<String> weeklyDoneThisWeek = const {},
 }) {
   final byId = {for (final r in bundle.records) r.id: r};
   final pool = InventoryPool(inventory);
@@ -89,6 +97,7 @@ AgendaPlan planAgenda({
     start: start,
     startResin: startResin,
     startCondensed: startCondensed,
+    weeklyDoneThisWeek: weeklyDoneThisWeek,
   );
   final finish = <String, DateTime?>{};
   for (final name in names) {
@@ -118,32 +127,6 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     DateTime.now(),
     ref.read(activeServerProvider),
   );
-  final done = <String, Set<String>>{};
-
-  String _key(DateTime d) => 'agenda-${dayKey(d)}';
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final repo = ref.read(buildRepositoryProvider);
-    for (var i = 0; i < 7; i++) {
-      final d = DateTime(today.year, today.month, today.day + i);
-      final set = await repo.checked(_key(d), d);
-      if (!mounted) return;
-      setState(() => done[dayKey(d)] = set);
-    }
-  }
-
-  Future<void> _toggle(DateTime d, String key, bool on) async {
-    final set = done.putIfAbsent(dayKey(d), () => {});
-    setState(() => on ? set.add(key) : set.remove(key));
-    await ref.read(buildRepositoryProvider).setChecked(_key(d), d, set);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -152,10 +135,18 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     final builds = ref.watch(buildsProvider).asData?.value;
     final inventory = ref.watch(inventoryProvider).asData?.value;
     final resin = ref.watch(resinProvider).asData?.value;
-    if (bundle == null || rules == null || builds == null || inventory == null) {
+    if (bundle == null ||
+        rules == null ||
+        builds == null ||
+        inventory == null) {
       return const Center(child: CircularProgressIndicator());
     }
     final byId = {for (final r in bundle.records) r.id: r};
+    final doneToday =
+        ref.watch(doneTodayProvider).asData?.value ?? const <DoneTask>[];
+    final doneKeys = {for (final t in doneToday) t.key};
+    bool isToday(DateTime d) =>
+        d.year == today.year && d.month == today.month && d.day == today.day;
     AgendaPlan? plan;
     String? error;
     try {
@@ -169,6 +160,8 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
               start: today,
               startResin: resin?.normalAt(DateTime.now()) ?? 180,
               startCondensed: resin?.condensed ?? 0,
+              weeklyDoneThisWeek:
+                  ref.watch(weeklyBossesDoneProvider).asData?.value ?? const {},
             );
     } on CalculationException catch (e) {
       error = e.message;
@@ -214,19 +207,19 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                  resin == null
-                      ? 'Resina: cargando…'
-                      : 'Resina para hoy: ${resin.normalAt(DateTime.now())}'
-                            '${resin.condensed > 0 ? ' + ${resin.condensed} concentrada' : ''}',
-                ),
-                TextButton.icon(
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (_) => const ResinDialog(),
-                  ),
-                  icon: const Icon(Icons.nightlight_round, size: 18),
-                  label: const Text('Editar resina'),
-                ),
+                        resin == null
+                            ? 'Resina: cargando…'
+                            : 'Resina para hoy: ${resin.normalAt(DateTime.now())}'
+                                  '${resin.condensed > 0 ? ' + ${resin.condensed} concentrada' : ''}',
+                      ),
+                      TextButton.icon(
+                        onPressed: () => showDialog<void>(
+                          context: context,
+                          builder: (_) => const ResinDialog(),
+                        ),
+                        icon: const Icon(Icons.nightlight_round, size: 18),
+                        label: const Text('Editar resina'),
+                      ),
                       Text('Nivel de mundo ${inventory.worldLevel}'),
                       TextButton(
                         onPressed: () => context.go('/settings'),
@@ -265,7 +258,8 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              day.date.day == today.day && day.date.month == today.month
+                              day.date.day == today.day &&
+                                      day.date.month == today.month
                                   ? 'Hoy · ${date(day.date)}'
                                   : date(day.date),
                               style: theme.textTheme.titleMedium,
@@ -277,26 +271,42 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                       if (day.runs.isEmpty)
                         const Padding(
                           padding: EdgeInsets.only(top: 8),
-                          child: Text('Nada con resina: aprovecha para explorar o la Tetera.'),
+                          child: Text(
+                            'Nada con resina: aprovecha para explorar o la Tetera.',
+                          ),
                         ),
                       for (final run in day.runs)
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          value: done[dayKey(day.date)]?.contains(
-                                '${run.task.owner}:${run.task.title}',
-                              ) ??
-                              false,
-                          onChanged: (v) => _toggle(
-                            day.date,
-                            '${run.task.owner}:${run.task.title}',
-                            v!,
+                        if (isToday(day.date))
+                          CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            value: doneKeys.contains(TaskRef.runKey(run.task)),
+                            onChanged: (_) => toggleTask(
+                              context,
+                              ref,
+                              TaskRef.run(run),
+                              doneToday,
+                            ),
+                            secondary: materialIcon(
+                              byId[run.task.materialId]?.image,
+                            ),
+                            title: Text('${run.task.title} × ${run.count}'),
+                            subtitle: Text(_runDetails(run)),
+                          )
+                        else
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: materialIcon(
+                              byId[run.task.materialId]?.image,
+                            ),
+                            title: Text('${run.task.title} × ${run.count}'),
+                            subtitle: Text(_runDetails(run)),
                           ),
-                          secondary: materialIcon(byId[run.task.materialId]?.image),
-                          title: Text('${run.task.title} × ${run.count}'),
-                          subtitle: Text(
-                            '${run.task.owner} · ${run.task.phase.label} · ${run.resin} de resina'
-                            '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}',
-                          ),
+                      if (isToday(day.date))
+                        DoneTodayTiles(
+                          shown: {
+                            for (final r in day.runs) TaskRef.runKey(r.task),
+                          },
+                          where: (t) => t.key.startsWith('resina|'),
                         ),
                     ],
                   ),
@@ -310,17 +320,29 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Sin gastar resina', style: theme.textTheme.titleMedium),
+                    Text(
+                      'Sin gastar resina',
+                      style: theme.textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
                     for (final e in plan.free.entries) ...[
                       Text(e.key, style: theme.textTheme.titleSmall),
                       for (final task in e.value)
-                        ListTile(
+                        CheckboxListTile(
                           dense: true,
                           contentPadding: EdgeInsets.zero,
-                          leading: materialIcon(byId[task.materialId]?.image),
+                          value: doneKeys.contains(TaskRef.free(task).key),
+                          onChanged: (_) => toggleTask(
+                            context,
+                            ref,
+                            TaskRef.free(task),
+                            doneToday,
+                          ),
+                          secondary: materialIcon(byId[task.materialId]?.image),
                           title: Text(task.title),
-                          trailing: Text('Faltan ${formatNumber(task.missing)}'),
+                          subtitle: Text(
+                            'Faltan ${formatNumber(task.missing)}',
+                          ),
                         ),
                     ],
                   ],
@@ -332,3 +354,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
     );
   }
 }
+
+String _runDetails(PlannedRun run) =>
+    '${run.task.owner} · ${run.task.phase.label} · ${run.resin} de resina'
+    '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}';

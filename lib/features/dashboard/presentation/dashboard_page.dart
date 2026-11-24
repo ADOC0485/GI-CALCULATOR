@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+
+import '../../resin/wallet.dart';
+import '../../tasks/task_completion.dart';
+import '../../tasks/task_log.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -50,6 +55,8 @@ class DashboardPage extends ConsumerWidget {
           start: today,
           startResin: resin?.normalAt(now) ?? 180,
           startCondensed: resin?.condensed ?? 0,
+          weeklyDoneThisWeek:
+              ref.watch(weeklyBossesDoneProvider).asData?.value ?? const {},
         );
       } on CalculationException {
         plan = null;
@@ -64,7 +71,9 @@ class DashboardPage extends ConsumerWidget {
           : '${profileDetails(profile)} · Tus builds pendientes y lo que toca hacer hoy.',
       action: const ThemeToggleButton(),
       children: [
-        if (profile != null && profile.gender == null && profile.avatarId == null)
+        if (profile != null &&
+            profile.gender == null &&
+            profile.avatarId == null)
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: Card(
@@ -210,7 +219,9 @@ class _BuildsCard extends StatelessWidget {
                   character: byId[b.characterId],
                   weapon: b.weaponId == null ? null : byId[b.weaponId],
                   progress: plan?.progress[b.id],
-                  finish: plan?.finishByBuild[byId[b.characterId]?.name ?? b.characterId],
+                  finish:
+                      plan?.finishByBuild[byId[b.characterId]?.name ??
+                          b.characterId],
                 ),
           ],
         ),
@@ -236,7 +247,8 @@ class _BuildRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final p = progress;
-    final complete = p != null && p.fraction >= 1 && p.expMissing == 0 && p.moraMissing == 0;
+    final complete =
+        p != null && p.fraction >= 1 && p.expMissing == 0 && p.moraMissing == 0;
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () => context.go('/build/${item.id}'),
@@ -284,7 +296,8 @@ class _BuildRow extends StatelessWidget {
                       'Nivel ${item.characterNow.level} → ${item.characterGoal.level}',
                       if (item.talentsOn)
                         'Talentos ${item.characterNow.talents.join('/')} → ${item.characterGoal.talents.join('/')}',
-                      if (p != null) '${formatNumber(p.have)} de ${formatNumber(p.needed)} materiales',
+                      if (p != null)
+                        '${formatNumber(p.have)} de ${formatNumber(p.needed)} materiales',
                       if (complete)
                         '¡Tienes todo!'
                       else if (finish != null)
@@ -320,37 +333,50 @@ class _TodayCard extends ConsumerStatefulWidget {
 
 class _TodayCardState extends ConsumerState<_TodayCard> {
   static const _routine = [
-    ('daily', 'Encargos diarios y recompensa de la Asociación', Icons.assignment_turned_in_outlined),
-    ('welkin', 'Reclamar la Bendición lunar (si la tienes)', Icons.brightness_3_outlined),
-    ('teapot', 'Tetera: moneda del reino y confianza de Tubby', Icons.local_cafe_outlined),
+    (
+      TaskRef(
+        key: 'rutina|daily',
+        label: 'Encargos diarios y recompensa de la Asociación',
+        primogems: Wallet.commissionPrimogems,
+        commission: true,
+      ),
+      Icons.assignment_turned_in_outlined,
+    ),
+    (
+      TaskRef(
+        key: 'rutina|welkin',
+        label: 'Reclamar la Bendición lunar (si la tienes)',
+        primogems: Wallet.welkinPrimogems,
+      ),
+      Icons.brightness_3_outlined,
+    ),
+    (
+      TaskRef(
+        key: 'rutina|teapot',
+        label: 'Tetera: moneda del reino y confianza de Tubby',
+      ),
+      Icons.local_cafe_outlined,
+    ),
   ];
-  Set<String> done = {};
-
-  @override
-  void initState() {
-    super.initState();
-    ref.read(buildRepositoryProvider).checked('home', widget.today).then((set) {
-      if (mounted) setState(() => done = set);
-    });
-  }
-
-  Future<void> _toggle(String key, bool on) async {
-    setState(() => on ? done.add(key) : done.remove(key));
-    await ref.read(buildRepositoryProvider).setChecked('home', widget.today, done);
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final byId = {
-      for (final r in widget.bundle?.records ?? const <CatalogRecord>[]) r.id: r,
+      for (final r in widget.bundle?.records ?? const <CatalogRecord>[])
+        r.id: r,
     };
+    final done =
+        ref.watch(doneTodayProvider).asData?.value ?? const <DoneTask>[];
+    final doneKeys = {for (final t in done) t.key};
     final runs = widget.plan?.schedule.days.firstOrNull?.runs ?? const [];
-    final total = _routine.length + runs.length;
-    final checked = [
-      ..._routine.map((r) => r.$1),
-      ...runs.map((r) => 'resin:${r.task.owner}:${r.task.title}'),
-    ].where(done.contains).length;
+    final shown = {
+      for (final (task, _) in _routine) task.key,
+      for (final run in runs) TaskRef.runKey(run.task),
+    };
+    final extraDone = done.where((t) => !shown.contains(t.key)).length;
+    final total = shown.length + extraDone;
+    final checked = shown.where(doneKeys.contains).length + extraDone;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -371,21 +397,31 @@ class _TodayCardState extends ConsumerState<_TodayCard> {
               ],
             ),
             const SizedBox(height: 8),
-            for (final (key, label, icon) in _routine)
+            for (final (task, icon) in _routine)
               CheckboxListTile(
-                key: ValueKey('today-$key'),
+                key: ValueKey('today-${task.key.split('|').last}'),
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                value: done.contains(key),
-                onChanged: (v) => _toggle(key, v!),
+                value: doneKeys.contains(task.key),
+                onChanged: (_) => toggleTask(context, ref, task, done),
                 secondary: Icon(icon),
-                title: Text(label),
+                title: Text(task.label),
+                subtitle: task.primogems > 0
+                    ? Text(
+                        task.commission
+                            ? '+${task.primogems} Protogemas y la Mora de los encargos'
+                            : '+${task.primogems} Protogemas',
+                      )
+                    : null,
               ),
             const Divider(),
             Row(
               children: [
                 Expanded(
-                  child: Text('Gastar la resina en', style: theme.textTheme.titleSmall),
+                  child: Text(
+                    'Gastar la resina en',
+                    style: theme.textTheme.titleSmall,
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: () => showDialog<void>(
@@ -400,14 +436,20 @@ class _TodayCardState extends ConsumerState<_TodayCard> {
             if (widget.plan == null)
               const Text('Añade una build para saber en qué gastar tu resina.')
             else if (runs.isEmpty)
-              const Text('Nada pendiente con resina hoy: aprovecha para explorar.')
+              const Text(
+                'Nada pendiente con resina hoy: aprovecha para explorar.',
+              )
             else
               for (final run in runs)
                 CheckboxListTile(
+                  key: ValueKey(
+                    'today-run-${run.task.owner}-${run.task.title}',
+                  ),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  value: done.contains('resin:${run.task.owner}:${run.task.title}'),
-                  onChanged: (v) => _toggle('resin:${run.task.owner}:${run.task.title}', v!),
+                  value: doneKeys.contains(TaskRef.runKey(run.task)),
+                  onChanged: (_) =>
+                      toggleTask(context, ref, TaskRef.run(run), done),
                   secondary: materialIcon(byId[run.task.materialId]?.image),
                   title: Text('${run.task.title} × ${run.count}'),
                   subtitle: Text(
@@ -415,6 +457,7 @@ class _TodayCardState extends ConsumerState<_TodayCard> {
                     '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}',
                   ),
                 ),
+            DoneTodayTiles(shown: shown),
           ],
         ),
       ),

@@ -37,9 +37,8 @@ class ResinState {
 
   /// Original Resin right now, counting regeneration (never past the cap,
   /// but a value already above it from refills is kept).
-  int originalAt(DateTime now) => original >= cap
-      ? original
-      : (original + _ticks(now)).clamp(0, cap);
+  int originalAt(DateTime now) =>
+      original >= cap ? original : (original + _ticks(now)).clamp(0, cap);
 
   /// Time until the next point, or null when full.
   Duration? nextIn(DateTime now) {
@@ -61,6 +60,22 @@ class ResinState {
 
   /// Everything together, condensed counted at 40.
   int totalAt(DateTime now) => normalAt(now) + condensedValue * condensed;
+
+  /// Spends resin as the game does: [original] Original Resin and
+  /// [condensed] Condensed Resin (negative values give them back).
+  /// Regeneration keeps its progress towards the next point.
+  ResinState spend(DateTime now, {int original = 0, int condensed = 0}) {
+    final current = originalAt(now);
+    final ticks = _ticks(now);
+    final base = this.original >= cap || current >= cap
+        ? now
+        : updatedAt.add(regen * ticks);
+    return copyWith(
+      original: (current - original).clamp(0, 1 << 30),
+      updatedAt: base,
+      condensed: (this.condensed - condensed).clamp(0, maxCondensed),
+    );
+  }
 
   ResinState copyWith({
     int? original,
@@ -131,5 +146,15 @@ class ResinController extends AsyncNotifier<ResinState> {
     );
     await ref.read(scenarioRepositoryProvider).save(_key, next.toJson());
     state = AsyncData(next);
+  }
+
+  /// Spends (or, with negative values, gives back) resin after a task.
+  Future<ResinState> spend({int original = 0, int condensed = 0}) async {
+    final now = ref.read(resinClockProvider)();
+    final current = state.asData?.value ?? await future;
+    final next = current.spend(now, original: original, condensed: condensed);
+    await ref.read(scenarioRepositoryProvider).save(_key, next.toJson());
+    state = AsyncData(next);
+    return next;
   }
 }

@@ -1,3 +1,5 @@
+import '../../catalog/data/genshin_api_catalog.dart' show moraId;
+import '../../progression/domain/inventory_plan.dart';
 import '../../progression/domain/progression_calculator.dart';
 
 /// A character with their weapon and the targets for both.
@@ -89,6 +91,18 @@ class Inventory {
   final List<int> characterBooks, weaponOres;
   final int mora, worldLevel;
   final int? adventureRank;
+
+  /// How many of [id] the player owns; EXP books, ores and Mora included.
+  int owned(String id) {
+    for (final (i, item) in characterExpItems.indexed) {
+      if (item.id == id) return characterBooks[i];
+    }
+    for (final (i, item) in weaponExpItems.indexed) {
+      if (item.id == id) return weaponOres[i];
+    }
+    if (id == moraId) return mora;
+    return materials[id] ?? 0;
+  }
 
   static int _int(Object? v) => v is int ? v : int.tryParse('$v') ?? 0;
   static List<int> _list(Object? v) => v is List

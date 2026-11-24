@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../profiles/profile.dart';
 import '../profiles/profiles_card.dart';
 import 'resin_state.dart';
+import 'wallet.dart';
 
 String _clock(Duration d) {
   final h = d.inHours, m = d.inMinutes % 60, s = d.inSeconds % 60;
@@ -23,6 +24,7 @@ class ResinBar extends ConsumerStatefulWidget {
 
 class _ResinBarState extends ConsumerState<ResinBar> {
   Timer? _timer;
+  Wallet? _wallet;
 
   @override
   void initState() {
@@ -55,6 +57,7 @@ class _ResinBarState extends ConsumerState<ResinBar> {
     final original = resin.originalAt(now);
     final next = resin.nextIn(now);
     final full = resin.fullIn(now);
+    _wallet = ref.watch(walletProvider).asData?.value;
     Widget pill(IconData icon, String text, {String? tooltip, Color? color}) =>
         Tooltip(
           message: tooltip ?? text,
@@ -170,6 +173,19 @@ class _ResinBarState extends ConsumerState<ResinBar> {
                               ),
                             const SizedBox(width: 8),
                             Text('Total ${resin.totalAt(now)}', style: small),
+                            if (_wallet case final wallet?) ...[
+                              extra(
+                                Icons.auto_awesome,
+                                wallet.primogems,
+                                Colors.yellowAccent,
+                              ),
+                              if (wallet.genesis > 0)
+                                extra(
+                                  Icons.diamond_outlined,
+                                  wallet.genesis,
+                                  Colors.deepPurpleAccent,
+                                ),
+                            ],
                           ],
                         ),
                       ),
@@ -273,6 +289,21 @@ class _ResinBarState extends ConsumerState<ResinBar> {
                     'Total ${resin.totalAt(now)}',
                     style: theme.textTheme.labelLarge,
                   ),
+                  if (_wallet case final wallet?) ...[
+                    pill(
+                      Icons.auto_awesome,
+                      '${wallet.primogems}',
+                      tooltip: 'Protogemas',
+                      color: Colors.yellowAccent,
+                    ),
+                    if (wallet.genesis > 0)
+                      pill(
+                        Icons.diamond_outlined,
+                        '${wallet.genesis}',
+                        tooltip: 'Cristales génesis',
+                        color: Colors.deepPurpleAccent,
+                      ),
+                  ],
                   IconButton(
                     key: const ValueKey('resin-edit'),
                     tooltip: 'Editar resina',
@@ -298,6 +329,7 @@ class ResinDialog extends ConsumerStatefulWidget {
 
 class _ResinDialogState extends ConsumerState<ResinDialog> {
   late final TextEditingController original, condensed, fragile, transient;
+  late final TextEditingController primogems, genesis, commissionMora;
   String? error;
 
   @override
@@ -309,11 +341,23 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
     condensed = TextEditingController(text: '${r.condensed}');
     fragile = TextEditingController(text: '${r.fragile}');
     transient = TextEditingController(text: '${r.transient}');
+    final w = ref.read(walletProvider).asData?.value ?? const Wallet();
+    primogems = TextEditingController(text: '${w.primogems}');
+    genesis = TextEditingController(text: '${w.genesis}');
+    commissionMora = TextEditingController(text: '${w.commissionMora}');
   }
 
   @override
   void dispose() {
-    for (final c in [original, condensed, fragile, transient]) {
+    for (final c in [
+      original,
+      condensed,
+      fragile,
+      transient,
+      primogems,
+      genesis,
+      commissionMora,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -341,6 +385,16 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
             condensed: c,
             fragile: read(fragile),
             transient: read(transient),
+          );
+      final wallet = ref.read(walletProvider).asData?.value ?? const Wallet();
+      await ref
+          .read(walletProvider.notifier)
+          .save(
+            wallet.copyWith(
+              primogems: read(primogems),
+              genesis: read(genesis),
+              commissionMora: read(commissionMora),
+            ),
           );
       if (mounted) Navigator.pop(context);
     } catch (_) {
@@ -391,7 +445,7 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Tu resina'),
+    title: const Text('Tu resina y Protogemas'),
     content: SizedBox(
       width: 520,
       child: SingleChildScrollView(
@@ -436,6 +490,32 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
               Icons.hourglass_bottom,
               Colors.purpleAccent,
               const ValueKey('resin-transient'),
+            ),
+            const Divider(height: 24),
+            _row(
+              primogems,
+              'Protogemas',
+              'Las que tienes en el juego. Los encargos diarios suman 60 al marcarlos.',
+              Icons.auto_awesome,
+              Colors.yellowAccent,
+              const ValueKey('wallet-primogems'),
+            ),
+            _row(
+              genesis,
+              'Cristales',
+              'Cristales génesis (los de la tienda).',
+              Icons.diamond_outlined,
+              Colors.deepPurpleAccent,
+              const ValueKey('wallet-genesis'),
+            ),
+            _row(
+              commissionMora,
+              'Mora/encargos',
+              'Mora que suman los encargos diarios al marcarlos. Depende de tu '
+                  'rango de aventura: pon la que te den en el juego.',
+              Icons.monetization_on_outlined,
+              Colors.amber,
+              const ValueKey('wallet-commission-mora'),
             ),
             if (error != null)
               Text(

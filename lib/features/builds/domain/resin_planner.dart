@@ -97,7 +97,9 @@ List<PhaseNeeds> buildNeedsFromPool({
       record: record,
       result: result,
       ownedBooks: books,
-      ownedMaterials: {for (final id in result.materials.keys) id: owned[id] ?? 0},
+      ownedMaterials: {
+        for (final id in result.materials.keys) id: owned[id] ?? 0,
+      },
       ownedMora: pool.mora,
       rates: rates,
     );
@@ -124,8 +126,16 @@ List<PhaseNeeds> buildNeedsFromPool({
   add(
     BuildPhase.characterLevel,
     character!,
-    ProgressionState(level: now.level, ascension: now.ascension, talents: now.talents),
-    ProgressionState(level: goal.level, ascension: goal.ascension, talents: now.talents),
+    ProgressionState(
+      level: now.level,
+      ascension: now.ascension,
+      talents: now.talents,
+    ),
+    ProgressionState(
+      level: goal.level,
+      ascension: goal.ascension,
+      talents: now.talents,
+    ),
     pool.books,
   );
   if (weapon != null) {
@@ -141,7 +151,11 @@ List<PhaseNeeds> buildNeedsFromPool({
     add(
       BuildPhase.talents,
       character,
-      ProgressionState(level: goal.level, ascension: goal.ascension, talents: now.talents),
+      ProgressionState(
+        level: goal.level,
+        ascension: goal.ascension,
+        talents: now.talents,
+      ),
       goal,
       const [0, 0, 0],
     );
@@ -189,8 +203,12 @@ class FarmTask {
     this.group = 0,
     this.owner = '',
     this.bossKey,
+    this.materialIds = const [],
   });
   final TaskKind kind;
+
+  /// What the task gives, asked for when it is checked (lowest tier first).
+  final List<String> materialIds;
   final BuildPhase phase;
   final String title;
 
@@ -212,10 +230,42 @@ class FarmTask {
 
 /// Something to collect without resin (specialties, enemy drops, crowns…).
 class FreeTask {
-  const FreeTask(this.title, this.materialId, this.missing);
+  const FreeTask(
+    this.title,
+    this.materialId,
+    this.missing, [
+    this.materialIds = const [],
+  ]);
   final String title;
   final String? materialId;
   final int missing;
+
+  /// What collecting it gives, asked for when it is checked.
+  final List<String> materialIds;
+}
+
+/// A material and the ones crafted from it or into it, lowest tier first.
+List<String> craftFamily(Map<String, CatalogRecord> byId, String id) {
+  var base = id;
+  final seen = <String>{};
+  while (seen.add(base)) {
+    final from = byId[base]?.material?.craft?.fromId;
+    if (from == null) break;
+    base = from;
+  }
+  final up = <String, String>{
+    for (final r in byId.values)
+      if (r.material?.craft case final craft?) craft.fromId: r.id,
+  };
+  final family = [base];
+  for (
+    var next = up[base];
+    next != null && !family.contains(next);
+    next = up[next]
+  ) {
+    family.add(next);
+  }
+  return family;
 }
 
 class FarmPlan {
@@ -241,7 +291,11 @@ FarmPlan farmTasks({
   String? category(String id) => byId[id]?.material?.category;
   int depth(String id) {
     var d = 0;
-    for (var c = byId[id]?.material?.craft; c != null; c = byId[c.fromId]?.material?.craft) {
+    for (
+      var c = byId[id]?.material?.craft;
+      c != null;
+      c = byId[c.fromId]?.material?.craft
+    ) {
       d++;
     }
     return d;
@@ -278,77 +332,100 @@ FarmPlan farmTasks({
     final gems = of('Gema de ascensión').toList();
     if (boss.isNotEmpty || gems.isNotEmpty) {
       final runs = [
-        _ceil(boss.fold(0, (s, l) => s + l.missing) / DropAverages.bossMaterial),
+        _ceil(
+          boss.fold(0, (s, l) => s + l.missing) / DropAverages.bossMaterial,
+        ),
         _ceil(units(gems) / DropAverages.gemUnits),
       ].reduce((a, b) => a > b ? a : b);
       final icon = boss.isNotEmpty ? boss.first.id : gems.first.id;
-      tasks.add(FarmTask(
-        kind: TaskKind.worldBoss,
-        phase: phase,
-        group: groupBase + phase.index,
-        owner: owner,
-        title: boss.isNotEmpty
-            ? 'Jefe de mundo: ${name(icon)} y gemas'
-            : 'Jefe de mundo del elemento: ${name(icon)}',
-        runs: runs,
-        resin: 40,
-        materialId: icon,
-      ));
+      tasks.add(
+        FarmTask(
+          kind: TaskKind.worldBoss,
+          phase: phase,
+          group: groupBase + phase.index,
+          owner: owner,
+          title: boss.isNotEmpty
+              ? 'Jefe de mundo: ${name(icon)} y gemas'
+              : 'Jefe de mundo del elemento: ${name(icon)}',
+          runs: runs,
+          resin: 40,
+          materialId: icon,
+          materialIds: [
+            for (final l in boss) l.id,
+            if (gems.isNotEmpty) ...craftFamily(byId, gems.first.id),
+          ],
+        ),
+      );
     }
     for (final l in of('Material de jefe semanal')) {
-      tasks.add(FarmTask(
-        kind: TaskKind.weeklyBoss,
-        phase: phase,
-        group: groupBase + phase.index,
-        owner: owner,
-        title: 'Jefe semanal: ${name(l.id)}',
-        bossKey: byId[l.id]?.material?.sourceHints
-            .where((h) => h.startsWith('Lo sueltan'))
-            .firstOrNull ??
-            l.id,
-        runs: _ceil(l.missing / DropAverages.weeklyMaterial),
-        resin: 30,
-        materialId: l.id,
-      ));
+      tasks.add(
+        FarmTask(
+          kind: TaskKind.weeklyBoss,
+          phase: phase,
+          group: groupBase + phase.index,
+          owner: owner,
+          title: 'Jefe semanal: ${name(l.id)}',
+          bossKey:
+              byId[l.id]?.material?.sourceHints
+                  .where((h) => h.startsWith('Lo sueltan'))
+                  .firstOrNull ??
+              l.id,
+          runs: _ceil(l.missing / DropAverages.weeklyMaterial),
+          resin: 30,
+          materialId: l.id,
+          materialIds: [l.id],
+        ),
+      );
     }
     final books = of('Libro de talento').toList();
     // Items that neither craft nor are crafted (the crown) cannot be farmed.
     final chain = books
-        .where((l) => byId[l.id]?.material?.craft != null || crafted.contains(l.id))
+        .where(
+          (l) => byId[l.id]?.material?.craft != null || crafted.contains(l.id),
+        )
         .toList();
     if (chain.isNotEmpty) {
-      tasks.add(FarmTask(
-        kind: TaskKind.talentDomain,
-        phase: phase,
-        group: groupBase + phase.index,
-        owner: owner,
-        title: 'Dominio de talentos: ${name(chain.first.id)}',
-        runs: _ceil(units(chain) / DropAverages.bookUnits),
-        resin: 20,
-        materialId: chain.first.id,
-        days: daysOf(books),
-      ));
+      tasks.add(
+        FarmTask(
+          kind: TaskKind.talentDomain,
+          phase: phase,
+          group: groupBase + phase.index,
+          owner: owner,
+          title: 'Dominio de talentos: ${name(chain.first.id)}',
+          runs: _ceil(units(chain) / DropAverages.bookUnits),
+          resin: 20,
+          materialId: chain.first.id,
+          materialIds: craftFamily(byId, chain.first.id),
+          days: daysOf(books),
+        ),
+      );
     }
     for (final l in books.where((l) => !chain.contains(l))) {
-      free.add(FreeTask(
-        '${name(l.id)}: sale en eventos y ofrendas de reputación',
-        l.id,
-        l.missing,
-      ));
+      free.add(
+        FreeTask(
+          '${name(l.id)}: sale en eventos y ofrendas de reputación',
+          l.id,
+          l.missing,
+          [l.id],
+        ),
+      );
     }
     final weaponMats = of('Material de ascensión de arma').toList();
     if (weaponMats.isNotEmpty) {
-      tasks.add(FarmTask(
-        kind: TaskKind.weaponDomain,
-        phase: phase,
-        group: groupBase + phase.index,
-        owner: owner,
-        title: 'Dominio de armas: ${name(weaponMats.first.id)}',
-        runs: _ceil(units(weaponMats) / DropAverages.weaponUnits),
-        resin: 20,
-        materialId: weaponMats.first.id,
-        days: daysOf(weaponMats),
-      ));
+      tasks.add(
+        FarmTask(
+          kind: TaskKind.weaponDomain,
+          phase: phase,
+          group: groupBase + phase.index,
+          owner: owner,
+          title: 'Dominio de armas: ${name(weaponMats.first.id)}',
+          runs: _ceil(units(weaponMats) / DropAverages.weaponUnits),
+          resin: 20,
+          materialId: weaponMats.first.id,
+          materialIds: craftFamily(byId, weaponMats.first.id),
+          days: daysOf(weaponMats),
+        ),
+      );
     }
     const handled = {
       'Material de jefe',
@@ -359,46 +436,58 @@ FarmPlan farmTasks({
     };
     for (final l in missing.where((l) => !handled.contains(category(l.id)))) {
       final cat = category(l.id);
-      free.add(FreeTask(
-        cat == 'Especialidad local'
-            ? '${name(l.id)}: recógela en el mapa (reaparece cada 2 días)'
-            : cat == 'Botín común'
-            ? '${name(l.id)}: derrota enemigos que la suelten'
-            : name(l.id),
-        l.id,
-        l.missing,
-      ));
+      free.add(
+        FreeTask(
+          cat == 'Especialidad local'
+              ? '${name(l.id)}: recógela en el mapa (reaparece cada 2 días)'
+              : cat == 'Botín común'
+              ? '${name(l.id)}: derrota enemigos que la suelten'
+              : name(l.id),
+          l.id,
+          l.missing,
+          craftFamily(byId, l.id),
+        ),
+      );
     }
     if (phase == BuildPhase.characterLevel && need.plan.expMissing > 0) {
-      tasks.add(FarmTask(
-        kind: TaskKind.expLeyLine,
-        phase: phase,
-        group: groupBase + phase.index,
-        owner: owner,
-        title: 'Línea ley de EXP (libros de personaje)',
-        runs: _ceil(need.plan.expMissing / rates.experience),
-        resin: 20,
-        materialId: 'material:104003',
-      ));
+      tasks.add(
+        FarmTask(
+          kind: TaskKind.expLeyLine,
+          phase: phase,
+          group: groupBase + phase.index,
+          owner: owner,
+          title: 'Línea ley de EXP (libros de personaje)',
+          runs: _ceil(need.plan.expMissing / rates.experience),
+          resin: 20,
+          materialId: 'material:104003',
+          materialIds: [for (final e in characterExpItems.reversed) e.id],
+        ),
+      );
     }
     if (phase == BuildPhase.weaponLevel && need.plan.expMissing > 0) {
-      free.add(FreeTask(
-        'Mineral de refinamiento místico: forja, minería y cofres',
-        'material:104013',
-        _ceil(need.plan.expMissing / 10000),
-      ));
+      free.add(
+        FreeTask(
+          'Mineral de refinamiento místico: forja, minería y cofres',
+          'material:104013',
+          _ceil(need.plan.expMissing / 10000),
+          [for (final e in weaponExpItems.reversed) e.id],
+        ),
+      );
     }
     if (need.plan.moraMissing > 0) {
-      tasks.add(FarmTask(
-        kind: TaskKind.moraLeyLine,
-        phase: phase,
-        group: groupBase + phase.index,
-        owner: owner,
-        title: 'Línea ley de Mora',
-        runs: _ceil(need.plan.moraMissing / rates.mora),
-        resin: 20,
-        materialId: 'material:202',
-      ));
+      tasks.add(
+        FarmTask(
+          kind: TaskKind.moraLeyLine,
+          phase: phase,
+          group: groupBase + phase.index,
+          owner: owner,
+          title: 'Línea ley de Mora',
+          runs: _ceil(need.plan.moraMissing / rates.mora),
+          resin: 20,
+          materialId: 'material:202',
+          materialIds: const ['material:202'],
+        ),
+      );
     }
   }
   // The same drop can be needed by several phases: list it once.
@@ -408,9 +497,17 @@ FarmPlan farmTasks({
     final old = merged[key];
     merged[key] = old == null
         ? f
-        : FreeTask(old.title, old.materialId, old.missing + f.missing);
+        : FreeTask(
+            old.title,
+            old.materialId,
+            old.missing + f.missing,
+            old.materialIds,
+          );
   }
-  return FarmPlan(tasks.where((t) => t.runs > 0).toList(), merged.values.toList());
+  return FarmPlan(
+    tasks.where((t) => t.runs > 0).toList(),
+    merged.values.toList(),
+  );
 }
 
 class PlannedRun {
@@ -440,8 +537,8 @@ class ResinSchedule {
 
 int _priority(FarmTask t, int weekday) => switch (t.kind) {
   TaskKind.weeklyBoss => 0,
-  TaskKind.talentDomain || TaskKind.weaponDomain =>
-    t.days.isEmpty || t.days.contains(weekday) ? 1 : 9,
+  TaskKind.talentDomain ||
+  TaskKind.weaponDomain => t.days.isEmpty || t.days.contains(weekday) ? 1 : 9,
   TaskKind.worldBoss => 2,
   TaskKind.expLeyLine => 3,
   TaskKind.moraLeyLine => 4,
@@ -457,6 +554,7 @@ ResinSchedule scheduleResin(
   int dailyResin = 180,
   int resinCap = 200,
   int maxDays = 365,
+  Set<String> weeklyDoneThisWeek = const {},
 }) {
   for (final t in tasks) {
     t.remaining = t.runs;
@@ -476,14 +574,32 @@ ResinSchedule scheduleResin(
       week = monday;
       weeklyDone.clear();
       weeklyClaims = 0;
+      // Bosses already claimed in the game this week (checked as done).
+      if (i == 0) {
+        weeklyDone.addAll(weeklyDoneThisWeek);
+        weeklyClaims = weeklyDoneThisWeek.length;
+      }
     }
-    if (i > 0) resin = (resin + dailyResin).clamp(0, resinCap > resin ? resinCap : resin);
+    if (i > 0) {
+      resin = (resin + dailyResin).clamp(
+        0,
+        resinCap > resin ? resinCap : resin,
+      );
+    }
     final day = DayPlan(date);
-    final open = tasks.where((t) => t.remaining > 0 && _priority(t, date.weekday) < 9).toList()
-      ..sort((a, b) {
-        final g = a.group.compareTo(b.group);
-        return g != 0 ? g : _priority(a, date.weekday).compareTo(_priority(b, date.weekday));
-      });
+    final open =
+        tasks
+            .where((t) => t.remaining > 0 && _priority(t, date.weekday) < 9)
+            .toList()
+          ..sort((a, b) {
+            final g = a.group.compareTo(b.group);
+            return g != 0
+                ? g
+                : _priority(
+                    a,
+                    date.weekday,
+                  ).compareTo(_priority(b, date.weekday));
+          });
     for (final task in open) {
       var count = 0;
       var spent = 0;

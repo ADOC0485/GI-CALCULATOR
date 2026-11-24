@@ -1,3 +1,6 @@
+import '../../tasks/task_completion.dart';
+import '../../tasks/task_log.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,9 +62,9 @@ class _BuildPageState extends ConsumerState<BuildPage> {
   final ores = List.generate(3, (_) => TextEditingController());
   final mora = TextEditingController();
   final worldLevel = TextEditingController();
-  Set<String> done = {};
   bool inventoryLoaded = false;
   String? notice;
+
   /// Game day of the profile's server (it changes at 04:00 there).
   late final DateTime today = gameDay(
     DateTime.now(),
@@ -77,10 +80,8 @@ class _BuildPageState extends ConsumerState<BuildPage> {
   Future<void> _loadState() async {
     final repo = ref.read(buildRepositoryProvider);
     final inventory = await repo.inventory();
-    final checked = await repo.checked(widget.buildId, today);
     if (!mounted) return;
     setState(() {
-      done = checked;
       inventory.materials.forEach((id, v) => _owned(id).text = '$v');
       for (var i = 0; i < 3; i++) {
         books[i].text = _text(inventory.characterBooks[i]);
@@ -131,60 +132,71 @@ class _BuildPageState extends ConsumerState<BuildPage> {
       await ref.read(buildRepositoryProvider).log('Inventario actualizado.');
       ref.invalidate(inventoryProvider);
       ref.invalidate(historyProvider);
-      setState(() => notice = 'Inventario guardado. Sirve para todas tus builds.');
+      setState(
+        () => notice = 'Inventario guardado. Sirve para todas tus builds.',
+      );
     } catch (_) {
       setState(() => notice = 'No se pudo guardar el inventario.');
     }
   }
 
-  Future<void> _toggle(String key, bool value) async {
-    setState(() => value ? done.add(key) : done.remove(key));
-    await ref.read(buildRepositoryProvider).setChecked(widget.buildId, today, done);
+  /// Checks or unchecks a task; the inventory fields reload afterwards
+  /// because checking can change what you own.
+  Future<void> _toggle(TaskRef task, List<DoneTask> doneToday) async {
+    await toggleTask(context, ref, task, doneToday);
+    if (mounted) await _loadState();
   }
 
-  Widget _card(String title, List<Widget> children, {Widget? trailing}) => Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: SizedBox(
-      width: double.infinity,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+  Widget _card(String title, List<Widget> children, {Widget? trailing}) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: SizedBox(
+          width: double.infinity,
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                      ?trailing,
+                    ],
                   ),
-                  ?trailing,
+                  const SizedBox(height: 12),
+                  ...children,
                 ],
               ),
-              const SizedBox(height: 12),
-              ...children,
-            ],
+            ),
           ),
-        ),
-      ),
-    ),
-  );
-
-  Widget _numberField(TextEditingController c, String label, {double width = 110}) =>
-      SizedBox(
-        width: width,
-        child: TextField(
-          controller: c,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: InputDecoration(
-            labelText: label,
-            hintText: '0',
-            isDense: true,
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: (_) => setState(() => notice = null),
         ),
       );
+
+  Widget _numberField(
+    TextEditingController c,
+    String label, {
+    double width = 110,
+  }) => SizedBox(
+    width: width,
+    child: TextField(
+      controller: c,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: '0',
+        isDense: true,
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: (_) => setState(() => notice = null),
+    ),
+  );
 
   String _stateLabel(ProgressionState s) =>
       '${s.level}/${ProgressionRules.caps[s.ascension.clamp(0, 6)]}';
@@ -218,23 +230,34 @@ class _BuildPageState extends ConsumerState<BuildPage> {
     final theme = Theme.of(context);
     final inventory = _inventory();
     final resin = ref.watch(resinProvider).asData?.value;
+    final doneToday =
+        ref.watch(doneTodayProvider).asData?.value ?? const <DoneTask>[];
+    final doneKeys = {for (final t in doneToday) t.key};
 
     List<PhaseNeeds>? phases;
     FarmPlan? farm;
     ResinSchedule? schedule;
     String? error;
     try {
-      phases = buildNeeds(bundle: bundle, rules: rules, build: build, inventory: inventory);
+      phases = buildNeeds(
+        bundle: bundle,
+        rules: rules,
+        build: build,
+        inventory: inventory,
+      );
       farm = farmTasks(
         bundle: bundle,
         phases: phases,
         rates: LeyLineRates.forWorldLevel(inventory.worldLevel),
+        owner: character?.name ?? build.characterId,
       );
       schedule = scheduleResin(
         farm.tasks,
         start: today,
         startResin: resin?.normalAt(DateTime.now()) ?? 180,
         startCondensed: resin?.condensed ?? 0,
+        weeklyDoneThisWeek:
+            ref.watch(weeklyBossesDoneProvider).asData?.value ?? const {},
       );
     } on CalculationException catch (e) {
       error = e.message;
@@ -244,8 +267,10 @@ class _BuildPageState extends ConsumerState<BuildPage> {
     final bad = TextStyle(color: theme.colorScheme.error);
 
     return PageFrame(
-      title: '${character?.name ?? 'Personaje'}${weapon == null ? '' : ' + ${weapon.name}'}',
-      subtitle: 'Tu guía de mejora: qué te falta y en qué gastar la resina cada día.',
+      title:
+          '${character?.name ?? 'Personaje'}${weapon == null ? '' : ' + ${weapon.name}'}',
+      subtitle:
+          'Tu guía de mejora: qué te falta y en qué gastar la resina cada día.',
       action: Wrap(
         spacing: 8,
         children: [
@@ -278,7 +303,9 @@ class _BuildPageState extends ConsumerState<BuildPage> {
               await ref.read(buildRepositoryProvider).delete(build.id);
               await ref
                   .read(buildRepositoryProvider)
-                  .log('Build eliminada: ${character?.name ?? build.characterId}.');
+                  .log(
+                    'Build eliminada: ${character?.name ?? build.characterId}.',
+                  );
               ref.invalidate(buildsProvider);
               ref.invalidate(historyProvider);
               if (context.mounted) context.go('/dashboard');
@@ -327,7 +354,9 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                 child: Row(
                   children: [
                     Icon(
-                      p.done ? Icons.check_circle : Icons.radio_button_unchecked,
+                      p.done
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
                       color: p.done ? theme.colorScheme.primary : null,
                     ),
                     const SizedBox(width: 10),
@@ -348,7 +377,8 @@ class _BuildPageState extends ConsumerState<BuildPage> {
           trailing: FilledButton.icon(
             onPressed: () => showDialog<void>(
               context: context,
-              builder: (_) => BuildEditorDialog(bundle: bundle, existing: build),
+              builder: (_) =>
+                  BuildEditorDialog(bundle: bundle, existing: build),
             ),
             icon: const Icon(Icons.edit_outlined),
             label: const Text('Actualizar progreso'),
@@ -404,13 +434,15 @@ class _BuildPageState extends ConsumerState<BuildPage> {
               style: theme.textTheme.titleMedium,
             ),
             if (schedule.days.isEmpty || schedule.days.first.runs.isEmpty)
-              const Text('Hoy no hay nada que hacer con resina para esta build.'),
+              const Text(
+                'Hoy no hay nada que hacer con resina para esta build.',
+              ),
             if (schedule.days.isNotEmpty)
               for (final run in schedule.days.first.runs)
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
-                  value: done.contains(run.task.title),
-                  onChanged: (v) => _toggle(run.task.title, v!),
+                  value: doneKeys.contains(TaskRef.runKey(run.task)),
+                  onChanged: (_) => _toggle(TaskRef.run(run), doneToday),
                   secondary: materialIcon(byId[run.task.materialId]?.image),
                   title: Text('${run.task.title} × ${run.count}'),
                   subtitle: Text(
@@ -418,6 +450,16 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                     '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}',
                   ),
                 ),
+            if (schedule.days.isNotEmpty)
+              DoneTodayTiles(
+                shown: {
+                  for (final r in schedule.days.first.runs)
+                    TaskRef.runKey(r.task),
+                },
+                where: (t) => t.key.startsWith(
+                  'resina|${character?.name ?? build.characterId}|',
+                ),
+              ),
             const SizedBox(height: 8),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
@@ -442,13 +484,16 @@ class _BuildPageState extends ConsumerState<BuildPage> {
           ]),
           if (farm.free.isNotEmpty)
             _card('Sin gastar resina', [
-              const Text('Esto se consigue explorando; márcalo cuando lo tengas.'),
+              const Text(
+                'Esto se consigue explorando. Al marcarlo te pregunto cuánto tienes '
+                'y tu inventario queda igual que en el juego.',
+              ),
               const SizedBox(height: 8),
               for (final task in farm.free)
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
-                  value: done.contains('free:${task.title}'),
-                  onChanged: (v) => _toggle('free:${task.title}', v!),
+                  value: doneKeys.contains(TaskRef.free(task).key),
+                  onChanged: (_) => _toggle(TaskRef.free(task), doneToday),
                   secondary: materialIcon(byId[task.materialId]?.image),
                   title: Text(task.title),
                   subtitle: Text('Te faltan ${formatNumber(task.missing)}'),
@@ -459,83 +504,90 @@ class _BuildPageState extends ConsumerState<BuildPage> {
               ),
             ]),
         ],
-        _card(
-          'Tu inventario',
-          [
-            const Text('Lo que pongas aquí se comparte con todas tus builds y con la calculadora.'),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (final (i, item) in characterExpItems.indexed)
+        _card('Tu inventario', [
+          const Text(
+            'Lo que pongas aquí se comparte con todas tus builds y con la calculadora.',
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              for (final (i, item) in characterExpItems.indexed)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    materialIcon(byId[item.id]?.image),
+                    const SizedBox(width: 6),
+                    _numberField(books[i], item.label, width: 200),
+                  ],
+                ),
+              if (weapon != null)
+                for (final (i, item) in weaponExpItems.indexed)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       materialIcon(byId[item.id]?.image),
                       const SizedBox(width: 6),
-                      _numberField(books[i], item.label, width: 200),
+                      _numberField(ores[i], item.label, width: 200),
                     ],
                   ),
-                if (weapon != null)
-                  for (final (i, item) in weaponExpItems.indexed)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        materialIcon(byId[item.id]?.image),
-                        const SizedBox(width: 6),
-                        _numberField(ores[i], item.label, width: 200),
-                      ],
-                    ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  materialIcon(byId['material:202']?.image),
+                  const SizedBox(width: 6),
+                  _numberField(mora, 'Mora', width: 200),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          for (final p in phases ?? <PhaseNeeds>[]) ...[
+            Text(p.phase.label, style: theme.textTheme.titleSmall),
+            const SizedBox(height: 8),
+            for (final line in p.plan.lines)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    materialIcon(byId['material:202']?.image),
-                    const SizedBox(width: 6),
-                    _numberField(mora, 'Mora', width: 200),
+                    materialIcon(byId[line.id]?.image),
+                    SizedBox(
+                      width: 210,
+                      child: Text(byId[line.id]?.name ?? line.id),
+                    ),
+                    SizedBox(
+                      width: 110,
+                      child: Text('Necesitas ${formatNumber(line.needed)}'),
+                    ),
+                    _numberField(_owned(line.id), 'Tienes', width: 100),
+                    Text(
+                      line.missing == 0
+                          ? 'Listo'
+                          : 'Faltan ${formatNumber(line.missing)}',
+                      style: line.missing == 0 ? good : bad,
+                    ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            for (final p in phases ?? <PhaseNeeds>[]) ...[
-              Text(p.phase.label, style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              for (final line in p.plan.lines)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Wrap(
-                    spacing: 12,
-                    runSpacing: 6,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      materialIcon(byId[line.id]?.image),
-                      SizedBox(width: 210, child: Text(byId[line.id]?.name ?? line.id)),
-                      SizedBox(width: 110, child: Text('Necesitas ${formatNumber(line.needed)}')),
-                      _numberField(_owned(line.id), 'Tienes', width: 100),
-                      Text(
-                        line.missing == 0 ? 'Listo' : 'Faltan ${formatNumber(line.missing)}',
-                        style: line.missing == 0 ? good : bad,
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 8),
-            ],
-            Wrap(
-              spacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                FilledButton.icon(
-                  onPressed: _saveInventory,
-                  icon: const Icon(Icons.save_outlined),
-                  label: const Text('Guardar inventario'),
-                ),
-                if (notice != null) Text(notice!),
-              ],
-            ),
+              ),
+            const SizedBox(height: 8),
           ],
-        ),
+          Wrap(
+            spacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              FilledButton.icon(
+                onPressed: _saveInventory,
+                icon: const Icon(Icons.save_outlined),
+                label: const Text('Guardar inventario'),
+              ),
+              if (notice != null) Text(notice!),
+            ],
+          ),
+        ]),
       ],
     );
   }

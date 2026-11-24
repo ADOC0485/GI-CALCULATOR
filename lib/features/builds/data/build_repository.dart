@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../catalog/data/genshin_api_catalog.dart' show moraId;
 import '../../progression/data/scenario_repository.dart';
+import '../../progression/domain/inventory_plan.dart';
 import '../domain/build.dart';
 
 final buildRepositoryProvider = Provider(
@@ -90,6 +92,42 @@ class BuildRepository {
     });
   }
 
+  /// Sets how many of each item the player owns now (what they typed is
+  /// final). EXP books, ores and Mora go to their own fields.
+  Future<void> setOwned(Map<String, int> counts) async {
+    final current = await rawInventory();
+    List<Object?> list(String key) {
+      final v = current[key];
+      return [
+        for (var i = 0; i < 3; i++) v is List && i < v.length ? v[i] : '',
+      ];
+    }
+
+    final books = list('booksCharacter'), ores = list('booksWeapon');
+    final materials = <String, Object?>{};
+    Object? mora;
+    counts.forEach((id, value) {
+      final text = '$value';
+      final b = characterExpItems.indexWhere((e) => e.id == id);
+      final o = weaponExpItems.indexWhere((e) => e.id == id);
+      if (b >= 0) {
+        books[b] = text;
+      } else if (o >= 0) {
+        ores[o] = text;
+      } else if (id == moraId) {
+        mora = text;
+      } else {
+        materials[id] = text;
+      }
+    });
+    await updateInventory({
+      'booksCharacter': books,
+      'booksWeapon': ores,
+      'mora': ?mora,
+      'materials': materials,
+    });
+  }
+
   static const _history = 'historial';
 
   Future<List<HistoryEntry>> history() async {
@@ -97,7 +135,8 @@ class BuildRepository {
     if (items is! List) return [];
     return [
       for (final item in items.whereType<Map<String, dynamic>>())
-        if (DateTime.tryParse('${item['at']}') != null && item['text'] is String)
+        if (DateTime.tryParse('${item['at']}') != null &&
+            item['text'] is String)
           HistoryEntry(DateTime.parse('${item['at']}'), item['text'] as String),
     ];
   }
@@ -119,12 +158,9 @@ class BuildRepository {
     return {...?(stored?['done'] as List?)?.whereType<String>()};
   }
 
-  Future<void> setChecked(
-    String buildId,
-    DateTime day,
-    Set<String> done,
-  ) => scenarios.save('checklist:$buildId', {
-    'day': dayKey(day),
-    'done': done.toList(),
-  });
+  Future<void> setChecked(String buildId, DateTime day, Set<String> done) =>
+      scenarios.save('checklist:$buildId', {
+        'day': dayKey(day),
+        'done': done.toList(),
+      });
 }

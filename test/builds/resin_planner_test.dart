@@ -14,9 +14,9 @@ void main() {
     '.catalog-cache/genshin-api-62af3592e7ef4498d90e68e7967096c5aabc8f33.zip',
   );
   final skip = zip.existsSync() ? false : 'sin caché local de genshin-api';
-  final spanish =
-      jsonDecode(File('assets/catalog/nombres-es.json').readAsStringSync())
-          as Map<String, dynamic>;
+  final spanish = jsonDecode(
+    File('assets/catalog/nombres-es.json').readAsStringSync(),
+  ) as Map<String, dynamic>;
   Map<String, String> part(String key) =>
       (spanish[key] as Map<String, dynamic>).cast<String, String>();
   late final CatalogBundle bundle = catalogFromArchive(
@@ -134,5 +134,44 @@ void main() {
     }
     expect(perWeek.values.every((n) => n == 1), isTrue);
     expect(perWeek.length, weekly.runs);
+  }, skip: skip);
+
+  test('Checking a task asks for its whole family, lowest tier first', () {
+    final phases = buildNeeds(
+      bundle: bundle,
+      rules: rules,
+      build: mavuika(),
+      inventory: const Inventory(),
+    );
+    final farm = farmTasks(
+      bundle: bundle,
+      phases: phases,
+      rates: LeyLineRates.forWorldLevel(8),
+    );
+    final byId = {for (final r in bundle.records) r.id: r};
+    final books = farm.tasks.firstWhere((t) => t.kind == TaskKind.talentDomain);
+    expect(books.materialIds, hasLength(3));
+    // Each tier is crafted from the one before it.
+    expect(byId[books.materialIds[0]]!.material!.craft, isNull);
+    expect(
+      byId[books.materialIds[1]]!.material!.craft!.fromId,
+      books.materialIds[0],
+    );
+    expect(
+      byId[books.materialIds[2]]!.material!.craft!.fromId,
+      books.materialIds[1],
+    );
+    final weapon = farm.tasks.firstWhere(
+      (t) => t.kind == TaskKind.weaponDomain,
+    );
+    expect(weapon.materialIds, hasLength(4));
+    final boss = farm.tasks.firstWhere((t) => t.kind == TaskKind.worldBoss);
+    expect(boss.materialIds.length, 5); // boss drop + 4 gem tiers
+    final exp = farm.tasks.firstWhere((t) => t.kind == TaskKind.expLeyLine);
+    expect(exp.materialIds, [
+      'material:104001',
+      'material:104002',
+      'material:104003',
+    ]);
   }, skip: skip);
 }
