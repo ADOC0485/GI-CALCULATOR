@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/presentation/page_frame.dart';
+import '../../builds/presentation/finished_builds_card.dart';
 import '../domain/app_preferences.dart';
 import '../../profiles/profiles_card.dart';
 import '../../updates/update_widgets.dart';
@@ -49,6 +50,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       subtitle: 'Haz de este espacio tu compañero de aventuras.',
       children: [
         const ProfilesCard(),
+        const SizedBox(height: 24),
+        const FinishedBuildsCard(),
         const SizedBox(height: 24),
         Card(
           child: Padding(

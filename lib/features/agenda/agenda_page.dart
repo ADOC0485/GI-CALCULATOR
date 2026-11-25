@@ -64,7 +64,7 @@ AgendaPlan planAgenda({
   final names = <String>[];
   final progress = <String, BuildProgress>{};
   for (final (i, build) in builds.indexed) {
-    final name = byId[build.characterId]?.name ?? build.characterId;
+    final name = build.owner(byId);
     names.add(name);
     final phases = buildNeedsFromPool(
       bundle: bundle,

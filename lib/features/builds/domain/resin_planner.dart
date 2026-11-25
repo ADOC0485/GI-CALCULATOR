@@ -1,6 +1,7 @@
 import '../../catalog/domain/catalog.dart';
 import '../../progression/domain/inventory_plan.dart';
 import '../../progression/domain/progression_calculator.dart';
+import '../../catalog/data/genshin_api_catalog.dart' show moraId;
 import 'build.dart';
 
 /// Order in which a build is completed.
@@ -37,6 +38,32 @@ class InventoryPool {
   final List<int> books, ores;
   int mora;
   final int worldLevel;
+
+  InventoryPool.copy(InventoryPool other)
+    : materials = Map.of(other.materials),
+      books = List.of(other.books),
+      ores = List.of(other.ores),
+      mora = other.mora,
+      worldLevel = other.worldLevel;
+
+  /// Units of each item still in the pool, by item id (EXP books, ores and
+  /// Mora included).
+  Map<String, int> snapshot() => {
+    ...materials,
+    for (final (i, item) in characterExpItems.indexed) item.id: books[i],
+    for (final (i, item) in weaponExpItems.indexed) item.id: ores[i],
+    moraId: mora,
+  };
+
+  /// What was taken from the pool since [before] (a [snapshot]).
+  Map<String, int> usedSince(Map<String, int> before) {
+    final after = snapshot();
+    return {
+      for (final e in before.entries)
+        if (e.value - (after[e.key] ?? 0) > 0)
+          e.key: e.value - (after[e.key] ?? 0),
+    };
+  }
 
   /// Takes the EXP items a phase uses: big ones first, small ones to finish.
   static void consume(List<int> owned, List<ExpItem> items, int experience) {
@@ -77,9 +104,16 @@ List<PhaseNeeds> buildNeedsFromPool({
   required InventoryPool pool,
 }) {
   final byId = {for (final r in bundle.records) r.id: r};
-  final character = byId[build.characterId];
-  require(character != null, 'El personaje ya no está en el catálogo.');
+  final character = build.characterId == null ? null : byId[build.characterId];
+  require(
+    !build.hasCharacter || character != null,
+    'El personaje ya no está en el catálogo.',
+  );
   final weapon = build.weaponId == null ? null : byId[build.weaponId];
+  require(
+    !build.hasWeapon || weapon != null,
+    'El arma ya no está en el catálogo.',
+  );
   final owned = pool.materials;
   final rates = LeyLineRates.forWorldLevel(pool.worldLevel);
   final phases = <PhaseNeeds>[];
@@ -123,21 +157,23 @@ List<PhaseNeeds> buildNeedsFromPool({
   }
 
   final now = build.characterNow, goal = build.characterGoal;
-  add(
-    BuildPhase.characterLevel,
-    character!,
-    ProgressionState(
-      level: now.level,
-      ascension: now.ascension,
-      talents: now.talents,
-    ),
-    ProgressionState(
-      level: goal.level,
-      ascension: goal.ascension,
-      talents: now.talents,
-    ),
-    pool.books,
-  );
+  if (character != null) {
+    add(
+      BuildPhase.characterLevel,
+      character,
+      ProgressionState(
+        level: now.level,
+        ascension: now.ascension,
+        talents: now.talents,
+      ),
+      ProgressionState(
+        level: goal.level,
+        ascension: goal.ascension,
+        talents: now.talents,
+      ),
+      pool.books,
+    );
+  }
   if (weapon != null) {
     add(
       BuildPhase.weaponLevel,
@@ -147,7 +183,7 @@ List<PhaseNeeds> buildNeedsFromPool({
       pool.ores,
     );
   }
-  if (build.talentsOn) {
+  if (character != null && build.talentsOn) {
     add(
       BuildPhase.talents,
       character,

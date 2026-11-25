@@ -68,6 +68,10 @@ void main() {
     );
     await tester.tap(find.text('abrir'));
     await tester.pumpAndSettle();
+    // First it asks what kind of build it is.
+    expect(find.text('¿Qué quieres subir?'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('kind-both')));
+    await tester.pumpAndSettle();
     // The weapon stays locked until there is a character.
     expect(find.text('Elige primero el personaje'), findsOneWidget);
     // Typing the full name selects it, even without tapping the suggestion.

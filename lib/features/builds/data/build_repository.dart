@@ -9,9 +9,38 @@ final buildRepositoryProvider = Provider(
   (ref) => BuildRepository(ref.watch(scenarioRepositoryProvider)),
 );
 
+/// Builds in progress, in priority order (the first one gets materials first).
 final buildsProvider = FutureProvider<List<GenshinBuild>>(
-  (ref) => ref.watch(buildRepositoryProvider).loadAll(),
+  (ref) async => [
+    for (final b in await ref.watch(buildRepositoryProvider).loadAll())
+      if (!b.finished) b,
+  ],
 );
+
+/// Builds that reached their goal, newest first.
+final finishedBuildsProvider = FutureProvider<List<GenshinBuild>>((ref) async {
+  final all = await ref.watch(buildRepositoryProvider).loadAll();
+  return [
+    for (final b in all)
+      if (b.finished) b,
+  ]..sort((a, b) => b.finishedAt!.compareTo(a.finishedAt!));
+});
+
+/// How many builds can be in progress at once.
+final buildLimitProvider = FutureProvider<int>(
+  (ref) => ref.watch(buildRepositoryProvider).activeLimit(),
+);
+
+/// Raised when a new build would go over the limit of builds in progress.
+class BuildLimitException implements Exception {
+  const BuildLimitException(this.limit);
+  final int limit;
+  String get message =>
+      'Ya tienes $limit builds en proceso, el máximo. Termina o borra una, '
+      'o cambia el límite en Ajustes.';
+  @override
+  String toString() => message;
+}
 
 final inventoryProvider = FutureProvider<Inventory>(
   (ref) => ref.watch(buildRepositoryProvider).inventory(),
@@ -38,9 +67,14 @@ class BuildRepository {
   static const _builds = 'builds';
   static const inventoryKey = 'inventario';
 
+  /// Recommended number of builds in progress at the same time.
+  static const defaultLimit = 4;
+
+  Future<Map<String, dynamic>?> _doc() => scenarios.load(_builds);
+
+  /// Every build, finished ones included, in priority order.
   Future<List<GenshinBuild>> loadAll() async {
-    final stored = await scenarios.load(_builds);
-    final items = stored?['items'];
+    final items = (await _doc())?['items'];
     if (items is! List) return [];
     return [
       for (final item in items)
@@ -48,28 +82,59 @@ class BuildRepository {
     ];
   }
 
+  Future<int> activeLimit() async {
+    final limit = (await _doc())?['limit'];
+    return limit is int && limit > 0 ? limit : defaultLimit;
+  }
+
+  Future<void> _write(List<GenshinBuild> all, {int? limit}) async =>
+      scenarios.save(_builds, {
+        'schema': 2,
+        'limit': limit ?? await activeLimit(),
+        'items': [for (final b in all) b.toJson()],
+      });
+
+  Future<void> setActiveLimit(int limit) async =>
+      _write(await loadAll(), limit: limit.clamp(1, 99));
+
+  /// Adds or replaces a build. New builds go last (lowest priority) and
+  /// throw [BuildLimitException] when the limit of builds in progress is full.
   Future<void> save(GenshinBuild build) async {
     final all = await loadAll();
     final index = all.indexWhere((b) => b.id == build.id);
     if (index < 0) {
+      final limit = await activeLimit();
+      if (!build.finished && all.where((b) => !b.finished).length >= limit) {
+        throw BuildLimitException(limit);
+      }
       all.add(build);
     } else {
       all[index] = build;
     }
-    await scenarios.save(_builds, {
-      'schema': 1,
-      'items': [for (final b in all) b.toJson()],
-    });
+    await _write(all);
   }
 
-  Future<void> delete(String id) async {
-    final all = await loadAll()
-      ..removeWhere((b) => b.id == id);
-    await scenarios.save(_builds, {
-      'schema': 1,
-      'items': [for (final b in all) b.toJson()],
-    });
+  /// Moves a build in progress one place up (more priority) or down.
+  Future<void> move(String id, {required bool up}) async {
+    final all = await loadAll();
+    final active = [
+      for (final (i, b) in all.indexed)
+        if (!b.finished) i,
+    ];
+    final at = active.indexWhere((i) => all[i].id == id);
+    final other = up ? at - 1 : at + 1;
+    if (at < 0 || other < 0 || other >= active.length) return;
+    final a = active[at], b = active[other];
+    final moved = all[a];
+    all[a] = all[b];
+    all[b] = moved;
+    await _write(all);
   }
+
+  Future<void> delete(String id) async => _write(
+    await loadAll()
+      ..removeWhere((b) => b.id == id),
+  );
 
   Future<Map<String, dynamic>> rawInventory() async =>
       await scenarios.load(inventoryKey) ?? {'schema': 1};

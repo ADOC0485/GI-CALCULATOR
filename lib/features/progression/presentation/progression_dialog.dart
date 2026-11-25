@@ -168,9 +168,11 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
       final builds = await ref.read(buildRepositoryProvider).loadAll();
       final build = builds
           .where(
-            (b) => isCharacter
-                ? b.characterId == widget.record.id
-                : b.weaponId == widget.record.id,
+            (b) =>
+                !b.finished &&
+                (isCharacter
+                    ? b.characterId == widget.record.id
+                    : b.weaponId == widget.record.id),
           )
           .firstOrNull;
       if (!mounted || build == null) return;
@@ -219,7 +221,7 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
       GenshinBuild? saved;
       if (isCharacter) {
         final existing = builds
-            .where((b) => b.characterId == widget.record.id)
+            .where((b) => !b.finished && b.characterId == widget.record.id)
             .firstOrNull;
         saved = (existing ??
                 GenshinBuild(
@@ -235,42 +237,21 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
           '${widget.record.name} (nivel ${level(from)} → ${level(to)}).',
         );
       } else {
-        final type = widget.record.progression?.weaponType;
-        final candidates = builds
-            .where((b) => records[b.characterId]?.progression?.weaponType == type)
-            .toList();
-        if (candidates.isEmpty) {
-          setState(() => notice =
-              'Primero crea en Inicio una build de un personaje que use ${type?.toLowerCase() ?? 'esta arma'}.');
-          return;
-        }
-        if (!mounted) return;
-        final target = candidates.length == 1
-            ? candidates.single
-            : await showDialog<GenshinBuild>(
-                context: context,
-                builder: (context) => SimpleDialog(
-                  title: const Text('¿A qué build se la pongo?'),
-                  children: [
-                    for (final b in candidates)
-                      SimpleDialogOption(
-                        onPressed: () => Navigator.pop(context, b),
-                        child: Text(records[b.characterId]?.name ?? b.characterId),
-                      ),
-                  ],
-                ),
-              );
-        if (target == null) return;
-        saved = target.copyWith(
-          weaponId: widget.record.id,
-          weaponNow: from,
-          weaponGoal: to,
-        );
+        // Weapons get a build of their own, unless a build in progress
+        // already levels this weapon (then that one is updated).
+        final existing = builds
+            .where((b) => !b.finished && b.weaponId == widget.record.id)
+            .firstOrNull;
+        saved = (existing ??
+                GenshinBuild(
+                  id: DateTime.now().microsecondsSinceEpoch.toString(),
+                  weaponId: widget.record.id,
+                ))
+            .copyWith(weaponNow: from, weaponGoal: to);
         await repo.save(saved);
         await repo.log(
-          '${widget.record.name} añadida a la build de '
-          '${records[target.characterId]?.name ?? target.characterId} '
-          '(nivel ${level(from)} → ${level(to)}).',
+          '${existing == null ? 'Nueva build' : 'Build actualizada'} desde la calculadora: '
+          '${saved.name(records)} (arma ${level(from)} → ${level(to)}).',
         );
       }
       // What you typed as owned also goes to the shared inventory.
@@ -286,11 +267,7 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
       final id = saved.id;
       messenger.showSnackBar(
         SnackBar(
-          content: Text(
-            isCharacter
-                ? 'Build de ${widget.record.name} guardada.'
-                : '${widget.record.name} guardada en la build.',
-          ),
+          content: Text('Build de ${widget.record.name} guardada.'),
           action: router == null
               ? null
               : SnackBarAction(
@@ -300,6 +277,8 @@ class _ProgressionDialogState extends ConsumerState<ProgressionDialog> {
         ),
       );
     } on CalculationException catch (e) {
+      setState(() => notice = e.message);
+    } on BuildLimitException catch (e) {
       setState(() => notice = e.message);
     } catch (_) {
       setState(() => notice = 'No se pudo guardar en tus builds. Inténtalo de nuevo.');

@@ -149,7 +149,7 @@ class DashboardPage extends ConsumerWidget {
   }
 }
 
-class _BuildsCard extends StatelessWidget {
+class _BuildsCard extends ConsumerWidget {
   const _BuildsCard({
     required this.bundle,
     required this.builds,
@@ -159,13 +159,55 @@ class _BuildsCard extends StatelessWidget {
   final List<GenshinBuild>? builds;
   final AgendaPlan? plan;
 
+  Future<void> _add(BuildContext context, WidgetRef ref) async {
+    final limit = await ref.read(buildLimitProvider.future);
+    if (!context.mounted) return;
+    if ((builds?.length ?? 0) >= limit) {
+      final go = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Ya tienes $limit builds en proceso'),
+          content: const Text(
+            'Es el máximo para que los materiales no se repartan entre demasiados. '
+            'Termina o borra una, o cambia el límite en Ajustes (no recomendado).',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Ir a Ajustes'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Entendido'),
+            ),
+          ],
+        ),
+      );
+      if (go == true && context.mounted) context.go('/settings');
+      return;
+    }
+    final created = await showDialog<GenshinBuild>(
+      context: context,
+      builder: (_) => BuildEditorDialog(bundle: bundle!),
+    );
+    if (created != null && context.mounted) {
+      context.go('/build/${created.id}');
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final byId = {
       for (final r in bundle?.records ?? const <CatalogRecord>[]) r.id: r,
     };
     final list = builds;
+    final limit = ref.watch(buildLimitProvider).asData?.value;
+    Future<void> move(GenshinBuild b, {required bool up}) async {
+      await ref.read(buildRepositoryProvider).move(b.id, up: up);
+      ref.invalidate(buildsProvider);
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -183,22 +225,27 @@ class _BuildsCard extends StatelessWidget {
                   children: [
                     Icon(Icons.flag_outlined, color: theme.colorScheme.primary),
                     const SizedBox(width: 12),
-                    Text('Tus builds', style: theme.textTheme.titleLarge),
+                    Flexible(
+                      child: Text(
+                        'Tus builds',
+                        style: theme.textTheme.titleLarge,
+                      ),
+                    ),
+                    if (list != null && limit != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '${list.length}/$limit',
+                        key: const ValueKey('builds-count'),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 FilledButton.icon(
                   key: const ValueKey('add-build'),
-                  onPressed: bundle == null
-                      ? null
-                      : () async {
-                          final created = await showDialog<GenshinBuild>(
-                            context: context,
-                            builder: (_) => BuildEditorDialog(bundle: bundle!),
-                          );
-                          if (created != null && context.mounted) {
-                            context.go('/build/${created.id}');
-                          }
-                        },
+                  onPressed: bundle == null ? null : () => _add(context, ref),
                   icon: const Icon(Icons.add),
                   label: const Text('Añadir build'),
                 ),
@@ -209,20 +256,30 @@ class _BuildsCard extends StatelessWidget {
               const LinearProgressIndicator()
             else if (list.isEmpty)
               const Text(
-                'Aún no tienes builds. Añade un personaje con su arma y te diremos '
-                'qué te falta y cómo repartir la resina cada día.',
+                'Aún no tienes builds en proceso. Añade un personaje, un arma o los '
+                'dos y te diremos qué te falta y cómo repartir la resina cada día.',
               )
-            else
-              for (final b in list)
+            else ...[
+              if (list.length > 1)
+                Text(
+                  'La de arriba tiene prioridad: se queda primero con los materiales. '
+                  'Muévelas con las flechas.',
+                  style: theme.textTheme.bodySmall,
+                ),
+              for (final (i, b) in list.indexed)
                 _BuildRow(
                   item: b,
-                  character: byId[b.characterId],
+                  character: b.characterId == null ? null : byId[b.characterId],
                   weapon: b.weaponId == null ? null : byId[b.weaponId],
                   progress: plan?.progress[b.id],
-                  finish:
-                      plan?.finishByBuild[byId[b.characterId]?.name ??
-                          b.characterId],
+                  finish: plan?.finishByBuild[b.owner(byId)],
+                  onUp: i == 0 ? null : () => move(b, up: true),
+                  onDown: i == list.length - 1
+                      ? null
+                      : () => move(b, up: false),
+                  showArrows: list.length > 1,
                 ),
+            ],
           ],
         ),
       ),
@@ -237,11 +294,16 @@ class _BuildRow extends StatelessWidget {
     required this.weapon,
     required this.progress,
     required this.finish,
+    this.onUp,
+    this.onDown,
+    this.showArrows = false,
   });
   final GenshinBuild item;
   final CatalogRecord? character, weapon;
   final BuildProgress? progress;
   final DateTime? finish;
+  final VoidCallback? onUp, onDown;
+  final bool showArrows;
 
   @override
   Widget build(BuildContext context) {
@@ -256,8 +318,37 @@ class _BuildRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         child: Row(
           children: [
-            materialIcon(character?.image, size: 48),
-            if (weapon != null) ...[
+            if (showArrows)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    key: ValueKey('up-${item.id}'),
+                    tooltip: 'Más prioridad',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onUp,
+                    icon: const RotatedBox(
+                      quarterTurns: 3,
+                      child: Icon(Icons.chevron_right),
+                    ),
+                  ),
+                  IconButton(
+                    key: ValueKey('down-${item.id}'),
+                    tooltip: 'Menos prioridad',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onDown,
+                    icon: const RotatedBox(
+                      quarterTurns: 1,
+                      child: Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ],
+              ),
+            if (character != null)
+              materialIcon(character?.image, size: 48)
+            else
+              materialIcon(weapon?.image, size: 48),
+            if (character != null && weapon != null) ...[
               const SizedBox(width: 4),
               materialIcon(weapon!.image, size: 36),
             ],
@@ -270,8 +361,11 @@ class _BuildRow extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          '${character?.name ?? item.characterId}'
-                          '${weapon == null ? '' : ' + ${weapon!.name}'}',
+                          [
+                            if (item.hasCharacter)
+                              character?.name ?? item.characterId!,
+                            if (item.hasWeapon) weapon?.name ?? item.weaponId!,
+                          ].join(' + '),
                           style: theme.textTheme.titleMedium,
                         ),
                       ),
@@ -293,8 +387,11 @@ class _BuildRow extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     [
-                      'Nivel ${item.characterNow.level} → ${item.characterGoal.level}',
-                      if (item.talentsOn)
+                      if (item.hasCharacter)
+                        'Nivel ${item.characterNow.level} → ${item.characterGoal.level}'
+                      else
+                        'Arma ${item.weaponNow.level} → ${item.weaponGoal.level}',
+                      if (item.talentsUsed)
                         'Talentos ${item.characterNow.talents.join('/')} → ${item.characterGoal.talents.join('/')}',
                       if (p != null)
                         '${formatNumber(p.have)} de ${formatNumber(p.needed)} materiales',

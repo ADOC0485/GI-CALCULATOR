@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genshin_progress_planner/features/builds/domain/build.dart';
 import 'package:genshin_progress_planner/data/database/app_database.dart'
     hide CatalogRecord;
 import 'package:genshin_progress_planner/data/database/database_provider.dart';
@@ -258,13 +259,17 @@ void main() {
     await tester.tap(find.text('Cerrar'));
     await tester.pumpAndSettle();
 
-    // A bow goes into Amber's build, the only one that uses bows.
+    // A bow gets a build of its own ("Solo arma").
     await open(bow);
     await tester.tap(find.byKey(const ValueKey('save-to-build')));
     await tester.pumpAndSettle();
-    final withBow = (await repo.loadAll()).single;
-    expect(withBow.weaponId, bow.id);
-    expect(withBow.weaponGoal.level, 90);
+    final all = await repo.loadAll();
+    expect(all, hasLength(2));
+    expect(all.first.weaponId, isNull);
+    expect(all.last.kind, BuildKind.weapon);
+    expect(all.last.characterId, isNull);
+    expect(all.last.weaponId, bow.id);
+    expect(all.last.weaponGoal.level, 90);
     expect(tester.takeException(), isNull);
   });
 }

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/presentation/page_frame.dart';
 import '../builds/data/build_repository.dart';
 import '../builds/domain/build.dart';
+import '../builds/domain/build_step.dart';
 import '../builds/domain/resin_planner.dart';
 import '../builds/presentation/build_page.dart';
 import '../catalog/domain/catalog.dart';
@@ -50,7 +51,9 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
       setState(() {
         inv.materials.forEach((id, v) => _owned(id).text = '$v');
         for (var i = 0; i < 3; i++) {
-          books[i].text = inv.characterBooks[i] == 0 ? '' : '${inv.characterBooks[i]}';
+          books[i].text = inv.characterBooks[i] == 0
+              ? ''
+              : '${inv.characterBooks[i]}';
           ores[i].text = inv.weaponOres[i] == 0 ? '' : '${inv.weaponOres[i]}';
         }
         mora.text = inv.mora == 0 ? '' : '${inv.mora}';
@@ -74,7 +77,9 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
     try {
       final repo = ref.read(buildRepositoryProvider);
       await repo.updateInventory({
-        'materials': {for (final e in owned.entries) e.key: e.value.text.trim()},
+        'materials': {
+          for (final e in owned.entries) e.key: e.value.text.trim(),
+        },
         'booksCharacter': [for (final b in books) b.text.trim()],
         'booksWeapon': [for (final o in ores) o.text.trim()],
         'mora': mora.text.trim(),
@@ -112,7 +117,11 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
     final rules = ref.watch(progressionRulesProvider).asData?.value;
     final builds = ref.watch(buildsProvider).asData?.value;
     final inventory = ref.watch(inventoryProvider).asData?.value;
-    if (bundle == null || rules == null || builds == null || inventory == null || !loaded) {
+    if (bundle == null ||
+        rules == null ||
+        builds == null ||
+        inventory == null ||
+        !loaded) {
       return const Center(child: CircularProgressIndicator());
     }
     final byId = {for (final r in bundle.records) r.id: r};
@@ -128,18 +137,35 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
           inventory: const Inventory(),
         )) {
           for (final line in p.plan.lines) {
-            needed.update(line.id, (v) => v + line.needed, ifAbsent: () => line.needed);
+            needed.update(
+              line.id,
+              (v) => v + line.needed,
+              ifAbsent: () => line.needed,
+            );
           }
         }
       } on CalculationException {
         // A broken build is shown on its own page; skip it here.
       }
     }
-    final ids = {
-      ...needed.keys,
-      ...owned.entries.where((e) => e.value.text.trim().isNotEmpty).map((e) => e.key),
-      ...added,
-    }.where((id) => byId[id]?.material != null && id != 'material:202').toList();
+    // Who each material is set aside for, in priority order.
+    final reserved = reserveInventory(
+      bundle: bundle,
+      rules: rules,
+      builds: builds,
+      inventory: inventory,
+    );
+    final owners = {for (final b in builds) b.id: b.owner(byId)};
+    final ids =
+        {
+              ...needed.keys,
+              ...owned.entries
+                  .where((e) => e.value.text.trim().isNotEmpty)
+                  .map((e) => e.key),
+              ...added,
+            }
+            .where((id) => byId[id]?.material != null && id != 'material:202')
+            .toList();
     int rank(String id) {
       final i = _categoryOrder.indexOf(byId[id]!.material!.category);
       return i < 0 ? _categoryOrder.length : i;
@@ -183,6 +209,11 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                   ? TextStyle(color: theme.colorScheme.primary)
                   : null,
             ),
+          if (reserved.holders(id).isNotEmpty)
+            Text(
+              'Reservado: ${reserved.holders(id).map((h) => '${formatNumber(h.$2)} para ${owners[h.$1]}').join(', ')}',
+              style: theme.textTheme.bodySmall,
+            ),
         ],
       ),
     );
@@ -197,7 +228,10 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
       ),
       children: [
         if (notice != null)
-          Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(notice!)),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(notice!),
+          ),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -210,13 +244,20 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                   spacing: 16,
                   runSpacing: 12,
                   children: [
-                    for (final (i, item) in [...characterExpItems, ...weaponExpItems].indexed)
+                    for (final (i, item) in [
+                      ...characterExpItems,
+                      ...weaponExpItems,
+                    ].indexed)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           materialIcon(byId[item.id]?.image),
                           const SizedBox(width: 6),
-                          _field(i < 3 ? books[i] : ores[i - 3], item.label, width: 220),
+                          _field(
+                            i < 3 ? books[i] : ores[i - 3],
+                            item.label,
+                            width: 220,
+                          ),
                         ],
                       ),
                     Row(

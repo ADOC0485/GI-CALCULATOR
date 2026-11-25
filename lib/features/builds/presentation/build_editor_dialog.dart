@@ -9,11 +9,20 @@ import '../../progression/presentation/progression_dialog.dart'
 import '../data/build_repository.dart';
 import '../domain/build.dart';
 
-/// Picks a character and weapon and how far each one is now and should go.
+/// Picks a character, a weapon or both, and how far each one is now and
+/// should go. New builds first ask which kind they are.
 class BuildEditorDialog extends ConsumerStatefulWidget {
-  const BuildEditorDialog({required this.bundle, this.existing, super.key});
+  const BuildEditorDialog({
+    required this.bundle,
+    this.existing,
+    this.template,
+    super.key,
+  });
   final CatalogBundle bundle;
   final GenshinBuild? existing;
+
+  /// A finished build to start a new goal from (its goal becomes "now").
+  final GenshinBuild? template;
   @override
   ConsumerState<BuildEditorDialog> createState() => _BuildEditorDialogState();
 }
@@ -29,6 +38,7 @@ class _LevelInput {
 }
 
 class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
+  BuildKind? kind;
   CatalogRecord? character, weapon;
   late final _LevelInput charNow, charGoal, weaponNow, weaponGoal;
   late final List<TextEditingController> talentsNow, talentsGoal;
@@ -45,9 +55,13 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
   @override
   void initState() {
     super.initState();
-    final b = widget.existing;
+    final t = widget.template;
+    final b =
+        widget.existing ??
+        t?.copyWith(characterNow: t.characterGoal, weaponNow: t.weaponGoal);
     final byId = {for (final r in widget.bundle.records) r.id: r};
-    character = b == null ? null : byId[b.characterId];
+    kind = b?.kind;
+    character = b?.characterId == null ? null : byId[b!.characterId];
     weapon = b?.weaponId == null ? null : byId[b!.weaponId];
     charNow = _LevelInput(
       b?.characterNow ?? const ProgressionState(level: 1, ascension: 0),
@@ -87,10 +101,15 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
     super.dispose();
   }
 
-  int _int(TextEditingController c, String label) => int.tryParse(c.text.trim()) ??
+  int _int(TextEditingController c, String label) =>
+      int.tryParse(c.text.trim()) ??
       (throw CalculationException('$label: escribe un número.'));
 
-  ProgressionState _state(_LevelInput input, String label, [List<int>? talents]) {
+  ProgressionState _state(
+    _LevelInput input,
+    String label, [
+    List<int>? talents,
+  ]) {
     final level = _int(input.level, label);
     return ProgressionState(
       level: level,
@@ -105,49 +124,109 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
       busy = true;
     });
     try {
-      require(character != null, 'Elige un personaje.');
+      final kind = this.kind!;
+      if (kind != BuildKind.weapon) {
+        require(this.character != null, 'Elige un personaje.');
+      }
+      if (kind != BuildKind.character) {
+        require(this.weapon != null, 'Elige un arma.');
+      }
+      final character = kind == BuildKind.weapon ? null : this.character;
+      final weapon = kind == BuildKind.character ? null : this.weapon;
       List<int> talents(List<TextEditingController> c, String label) => [
         for (var i = 0; i < 3; i++) _int(c[i], '${_talentNames[i]} ($label)'),
       ];
-      final now = _state(charNow, 'Nivel actual', talentsOn ? talents(talentsNow, 'ahora') : const [1, 1, 1]);
-      final goal = _state(charGoal, 'Nivel objetivo', talentsOn ? talents(talentsGoal, 'objetivo') : now.talents);
-      final build = GenshinBuild(
-        id: widget.existing?.id ??
-            DateTime.now().microsecondsSinceEpoch.toString(),
-        characterId: character!.id,
+      final useTalents = talentsOn && character != null;
+      final now = character == null
+          ? const ProgressionState(level: 1, ascension: 0)
+          : _state(
+              charNow,
+              'Nivel actual',
+              useTalents ? talents(talentsNow, 'ahora') : const [1, 1, 1],
+            );
+      final goal = character == null
+          ? const ProgressionState(level: 90, ascension: 6)
+          : _state(
+              charGoal,
+              'Nivel objetivo',
+              useTalents ? talents(talentsGoal, 'objetivo') : now.talents,
+            );
+      final old = widget.existing;
+      var build = GenshinBuild(
+        id: old?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+        characterId: character?.id,
         weaponId: weapon?.id,
         characterNow: now,
         characterGoal: goal,
-        weaponNow: _state(weaponNow, 'Nivel actual del arma'),
-        weaponGoal: _state(weaponGoal, 'Nivel objetivo del arma'),
-        talentsOn: talentsOn,
+        weaponNow: weapon == null
+            ? const ProgressionState(level: 1, ascension: 0)
+            : _state(weaponNow, 'Nivel actual del arma'),
+        weaponGoal: weapon == null
+            ? const ProgressionState(level: 90, ascension: 6)
+            : _state(weaponGoal, 'Nivel objetivo del arma'),
+        talentsOn: character == null || talentsOn,
       );
       // Validate with the calculator before saving.
       final rules = await ref.read(progressionRulesProvider.future);
-      calculateProgression(widget.bundle, character!, rules, build.characterNow, build.characterGoal);
+      if (character != null) {
+        calculateProgression(
+          widget.bundle,
+          character,
+          rules,
+          build.characterNow,
+          build.characterGoal,
+        );
+      }
       if (weapon != null) {
-        calculateProgression(widget.bundle, weapon!, rules, build.weaponNow, build.weaponGoal);
+        calculateProgression(
+          widget.bundle,
+          weapon,
+          rules,
+          build.weaponNow,
+          build.weaponGoal,
+        );
+      }
+      // Already where it should end: it goes straight to the finished ones.
+      if (old != null && build.atGoal) {
+        build = build.copyWith(finishedAt: DateTime.now());
       }
       final repo = ref.read(buildRepositoryProvider);
       await repo.save(build);
       String level(ProgressionState s) =>
           '${s.level}/${ProgressionRules.caps[s.ascension]}';
-      final old = widget.existing;
+      final byId = {for (final r in widget.bundle.records) r.id: r};
+      final parts = [
+        if (character != null)
+          old == null
+              ? 'nivel ${level(now)} → ${level(goal)}'
+              : 'nivel ${level(old.characterNow)} → ${level(now)}'
+                    '${useTalents ? ', talentos ${old.characterNow.talents.join('/')} → ${now.talents.join('/')}' : ''}',
+        if (weapon != null)
+          old == null
+              ? '${weapon.name} ${level(build.weaponNow)} → ${level(build.weaponGoal)}'
+              : '${weapon.name} ${level(old.weaponNow)} → ${level(build.weaponNow)}',
+      ].join('; ');
       await repo.log(
         old == null
-            ? 'Nueva build: ${character!.name}${weapon == null ? '' : ' + ${weapon!.name}'}'
-                  ' (nivel ${level(now)} → ${level(goal)}).'
-            : 'Progreso de ${character!.name}: nivel ${level(old.characterNow)} → ${level(now)}'
-                  '${talentsOn ? ', talentos ${old.characterNow.talents.join('/')} → ${now.talents.join('/')}' : ''}'
-                  '${weapon == null ? '' : '; ${weapon!.name} ${level(old.weaponNow)} → ${level(build.weaponNow)}'}.',
+            ? 'Nueva build (${kind.label.toLowerCase()}): ${build.name(byId)} ($parts).'
+            : 'Progreso de ${build.name(byId)}: $parts.',
       );
-      ref.invalidate(buildsProvider);
-      ref.invalidate(historyProvider);
+      if (build.finished) {
+        await repo.log('¡Build terminada! ${build.name(byId)}.');
+      }
+      ref
+        ..invalidate(buildsProvider)
+        ..invalidate(finishedBuildsProvider)
+        ..invalidate(historyProvider);
       if (mounted) Navigator.pop(context, build);
     } on CalculationException catch (e) {
       setState(() => error = e.message);
+    } on BuildLimitException catch (e) {
+      setState(() => error = e.message);
     } catch (_) {
-      setState(() => error = 'No se pudo guardar la build. Inténtalo de nuevo.');
+      setState(
+        () => error = 'No se pudo guardar la build. Inténtalo de nuevo.',
+      );
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -164,10 +243,11 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
     displayStringForOption: (r) => r.name,
     optionsBuilder: (value) {
       final q = value.text.toLowerCase().trim();
-      final list = options
-          .where((r) => q.isEmpty || r.name.toLowerCase().contains(q))
-          .toList()
-        ..sort((a, b) => a.name.compareTo(b.name));
+      final list =
+          options
+              .where((r) => q.isEmpty || r.name.toLowerCase().contains(q))
+              .toList()
+            ..sort((a, b) => a.name.compareTo(b.name));
       return list;
     },
     onSelected: onSelected,
@@ -299,6 +379,54 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
     );
   }
 
+  Widget _kindChooser(BuildContext context) => AlertDialog(
+    title: const Text('Nueva build'),
+    content: SizedBox(
+      width: 480,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('¿Qué quieres subir?'),
+          const SizedBox(height: 12),
+          for (final (k, icon, detail) in [
+            (
+              BuildKind.character,
+              Icons.person_outline,
+              'Nivel y talentos de un personaje.',
+            ),
+            (
+              BuildKind.weapon,
+              Icons.auto_fix_high_outlined,
+              'Solo el nivel de un arma.',
+            ),
+            (
+              BuildKind.both,
+              Icons.add_link,
+              'Un personaje con el arma que va a usar.',
+            ),
+          ])
+            Card(
+              child: ListTile(
+                key: ValueKey('kind-${k.name}'),
+                leading: Icon(icon),
+                title: Text(k.label),
+                subtitle: Text(detail),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => setState(() => kind = k),
+              ),
+            ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancelar'),
+      ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -312,92 +440,117 @@ class _BuildEditorDialogState extends ConsumerState<BuildEditorDialog> {
           r.kind == CatalogKind.weapon &&
           !r.pendingFields.contains('requirements') &&
           (r.rarity ?? 0) >= 3 &&
-          (character == null ||
+          (this.kind == BuildKind.weapon ||
+              character == null ||
               r.progression?.weaponType == character!.progression?.weaponType),
     );
     Widget title(String text) => Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 10),
       child: Text(text, style: theme.textTheme.titleMedium),
     );
+    if (this.kind == null) return _kindChooser(context);
+    final kind = this.kind!;
     return AlertDialog(
-      title: Text(widget.existing == null ? 'Nueva build' : 'Actualizar progreso'),
+      title: Text(
+        widget.existing == null
+            ? 'Nueva build · ${kind.label}'
+            : 'Actualizar progreso',
+      ),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Elige el personaje y su arma, y pon los niveles como los ves en '
-                'el juego. Si está justo en un tope (20, 40, 50…), marca "Ya ascendido" '
-                'si ya pasaste esa ascensión.',
+              Text(
+                '${switch (kind) {
+                  BuildKind.character => 'Elige el personaje',
+                  BuildKind.weapon => 'Elige el arma',
+                  BuildKind.both => 'Elige el personaje y su arma',
+                }} y pon los niveles como los ves en el juego. Si está justo en un '
+                'tope (20, 40, 50…), marca "Ya ascendido" si ya pasaste esa ascensión.',
               ),
-              title('Personaje'),
-              _picker('Busca el personaje', characters, character, (r) {
-                setState(() {
-                  character = r;
-                  if (weapon?.progression?.weaponType != r?.progression?.weaponType) {
-                    weapon = null;
-                  }
-                });
-              }),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 24,
-                runSpacing: 12,
-                children: [
-                  _levelRow('Nivel ahora', charNow),
-                  _levelRow('Nivel objetivo', charGoal),
-                ],
-              ),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                title: const Text('Subir talentos'),
-                value: talentsOn,
-                onChanged: (v) => setState(() => talentsOn = v!),
-              ),
-              if (talentsOn) ...[
-                const Text('Niveles base, sin el +3 de las constelaciones.'),
-                const SizedBox(height: 8),
-                for (var i = 0; i < 3; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _talentRow(i),
-                  ),
-              ],
-              title('Arma (opcional)'),
-              if (character == null)
-                const TextField(
-                  enabled: false,
-                  decoration: InputDecoration(
-                    labelText: 'Elige primero el personaje',
-                    helperText: 'Así solo verás armas del tipo que usa.',
-                    prefixIcon: Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(),
-                  ),
-                )
-              else
-                _picker(
-                  'Busca un ${character!.progression?.weaponType.toLowerCase()}',
-                  weapons,
-                  weapon,
-                  (r) => setState(() => weapon = r),
+              if (widget.existing == null && widget.template == null)
+                TextButton.icon(
+                  key: const ValueKey('change-kind'),
+                  onPressed: () => setState(() => this.kind = null),
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('Cambiar tipo de build'),
                 ),
-              if (weapon != null) ...[
+              if (kind != BuildKind.weapon) ...[
+                title('Personaje'),
+                _picker('Busca el personaje', characters, character, (r) {
+                  setState(() {
+                    character = r;
+                    if (weapon?.progression?.weaponType !=
+                        r?.progression?.weaponType) {
+                      weapon = null;
+                    }
+                  });
+                }),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 24,
                   runSpacing: 12,
                   children: [
-                    _levelRow('Nivel ahora', weaponNow),
-                    _levelRow('Nivel objetivo', weaponGoal),
+                    _levelRow('Nivel ahora', charNow),
+                    _levelRow('Nivel objetivo', charGoal),
                   ],
                 ),
-                TextButton(
-                  onPressed: () => setState(() => weapon = null),
-                  child: const Text('Quitar arma'),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: const Text('Subir talentos'),
+                  value: talentsOn,
+                  onChanged: (v) => setState(() => talentsOn = v!),
                 ),
+                if (talentsOn) ...[
+                  const Text('Niveles base, sin el +3 de las constelaciones.'),
+                  const SizedBox(height: 8),
+                  for (var i = 0; i < 3; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _talentRow(i),
+                    ),
+                ],
+              ],
+              if (kind != BuildKind.character) ...[
+                title('Arma'),
+                if (kind == BuildKind.weapon)
+                  _picker(
+                    'Busca el arma',
+                    weapons,
+                    weapon,
+                    (r) => setState(() => weapon = r),
+                  )
+                else if (character == null)
+                  const TextField(
+                    enabled: false,
+                    decoration: InputDecoration(
+                      labelText: 'Elige primero el personaje',
+                      helperText: 'Así solo verás armas del tipo que usa.',
+                      prefixIcon: Icon(Icons.lock_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                  )
+                else
+                  _picker(
+                    'Busca un ${character!.progression?.weaponType.toLowerCase()}',
+                    weapons,
+                    weapon,
+                    (r) => setState(() => weapon = r),
+                  ),
+                if (weapon != null) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 24,
+                    runSpacing: 12,
+                    children: [
+                      _levelRow('Nivel ahora', weaponNow),
+                      _levelRow('Nivel objetivo', weaponGoal),
+                    ],
+                  ),
+                ],
               ],
               if (error != null)
                 Padding(

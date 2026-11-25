@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/presentation/page_frame.dart';
+import '../../catalog/domain/catalog.dart';
 import '../../catalog/presentation/catalog_provider.dart';
 import '../../progression/domain/inventory_plan.dart';
 import '../../progression/domain/progression_calculator.dart';
@@ -18,7 +19,9 @@ import '../../profiles/profile.dart';
 import '../data/build_repository.dart';
 import '../domain/build.dart';
 import '../domain/resin_planner.dart';
+import '../domain/build_step.dart';
 import 'build_editor_dialog.dart';
+import 'level_up_dialog.dart';
 
 const weekdayNames = [
   'Lunes',
@@ -147,6 +150,27 @@ class _BuildPageState extends ConsumerState<BuildPage> {
     if (mounted) await _loadState();
   }
 
+  Future<void> _levelUp(CatalogBundle bundle, GenshinBuild build) async {
+    final saved = await showLevelUp(context, ref, bundle: bundle, build: build);
+    if (saved == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    if (saved.finished) {
+      if (GoRouter.maybeOf(context) != null) context.go('/dashboard');
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            '¡Build terminada! La encuentras en Ajustes, en Builds terminadas.',
+          ),
+        ),
+      );
+      return;
+    }
+    await _loadState();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Listo: se descontó del inventario.')),
+    );
+  }
+
   Widget _card(String title, List<Widget> children, {Widget? trailing}) =>
       Padding(
         padding: const EdgeInsets.only(bottom: 16),
@@ -225,7 +249,9 @@ class _BuildPageState extends ConsumerState<BuildPage> {
       );
     }
     final byId = {for (final r in bundle.records) r.id: r};
-    final character = byId[build.characterId];
+    final character = build.characterId == null
+        ? null
+        : byId[build.characterId];
     final weapon = build.weaponId == null ? null : byId[build.weaponId];
     final theme = Theme.of(context);
     final inventory = _inventory();
@@ -234,22 +260,36 @@ class _BuildPageState extends ConsumerState<BuildPage> {
         ref.watch(doneTodayProvider).asData?.value ?? const <DoneTask>[];
     final doneKeys = {for (final t in doneToday) t.key};
 
+    // Builds above this one take their materials first.
+    final reserved = reserveInventory(
+      bundle: bundle,
+      rules: rules,
+      builds: builds.sublist(0, builds.indexOf(build)),
+      inventory: inventory,
+    );
+    String reservedNote(String id) {
+      final holders = reserved.holders(id);
+      if (holders.isEmpty) return '';
+      final names = {for (final b in builds) b.id: b.owner(byId)};
+      return ' · ${holders.map((h) => '${formatNumber(h.$2)} para ${names[h.$1]}').join(', ')}';
+    }
+
     List<PhaseNeeds>? phases;
     FarmPlan? farm;
     ResinSchedule? schedule;
     String? error;
     try {
-      phases = buildNeeds(
+      phases = buildNeedsFromPool(
         bundle: bundle,
         rules: rules,
         build: build,
-        inventory: inventory,
+        pool: InventoryPool.copy(reserved.left),
       );
       farm = farmTasks(
         bundle: bundle,
         phases: phases,
         rates: LeyLineRates.forWorldLevel(inventory.worldLevel),
-        owner: character?.name ?? build.characterId,
+        owner: build.owner(byId),
       );
       schedule = scheduleResin(
         farm.tasks,
@@ -267,8 +307,7 @@ class _BuildPageState extends ConsumerState<BuildPage> {
     final bad = TextStyle(color: theme.colorScheme.error);
 
     return PageFrame(
-      title:
-          '${character?.name ?? 'Personaje'}${weapon == null ? '' : ' + ${weapon.name}'}',
+      title: build.name(byId),
       subtitle:
           'Tu guía de mejora: qué te falta y en qué gastar la resina cada día.',
       action: Wrap(
@@ -303,9 +342,7 @@ class _BuildPageState extends ConsumerState<BuildPage> {
               await ref.read(buildRepositoryProvider).delete(build.id);
               await ref
                   .read(buildRepositoryProvider)
-                  .log(
-                    'Build eliminada: ${character?.name ?? build.characterId}.',
-                  );
+                  .log('Build eliminada: ${build.name(byId)}.');
               ref.invalidate(buildsProvider);
               ref.invalidate(historyProvider);
               if (context.mounted) context.go('/dashboard');
@@ -315,13 +352,39 @@ class _BuildPageState extends ConsumerState<BuildPage> {
         ],
       ),
       children: [
-        _card(
-          'Tu avance',
-          [
-            Wrap(
-              spacing: 24,
-              runSpacing: 12,
-              children: [
+        _card('Tu avance', [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton.icon(
+                key: const ValueKey('level-up'),
+                onPressed: () => _levelUp(bundle, build),
+                icon: const Icon(Icons.check),
+                label: const Text('Subir'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) =>
+                      BuildEditorDialog(bundle: bundle, existing: build),
+                ),
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Editar metas'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Subir: cuando lo subas en el juego, aunque sea una parte. Se descuenta del inventario.',
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 24,
+            runSpacing: 12,
+            children: [
+              if (build.hasCharacter)
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -329,61 +392,49 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                     const SizedBox(width: 12),
                     Text(
                       '${character?.name}\nNivel ${_stateLabel(build.characterNow)} → ${_stateLabel(build.characterGoal)}'
-                      '${build.talentsOn ? '\nTalentos ${build.characterNow.talents.join('/')} → ${build.characterGoal.talents.join('/')}' : ''}',
+                      '${build.talentsUsed ? '\nTalentos ${build.characterNow.talents.join('/')} → ${build.characterGoal.talents.join('/')}' : ''}',
                     ),
                   ],
                 ),
-                if (weapon != null)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      materialIcon(weapon.image, size: 48),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${weapon.name}\nNivel ${_stateLabel(build.weaponNow)} → ${_stateLabel(build.weaponGoal)}',
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (error != null) Text(error, style: bad),
-            for (final p in phases ?? <PhaseNeeds>[])
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
+              if (weapon != null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      p.done
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                      color: p.done ? theme.colorScheme.primary : null,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        p.done
-                            ? '${p.phase.label}: ¡tienes todo!'
-                            : '${p.phase.label}: faltan '
-                                  '${p.plan.lines.where((l) => l.missing > 0).length} materiales'
-                                  '${p.plan.expMissing > 0 ? ', ${formatNumber(p.plan.expMissing)} de EXP' : ''}'
-                                  '${p.plan.moraMissing > 0 ? ', ${formatNumber(p.plan.moraMissing)} de Mora' : ''}',
-                      ),
+                    materialIcon(weapon.image, size: 48),
+                    const SizedBox(width: 12),
+                    Text(
+                      '${weapon.name}\nNivel ${_stateLabel(build.weaponNow)} → ${_stateLabel(build.weaponGoal)}',
                     ),
                   ],
                 ),
-              ),
-          ],
-          trailing: FilledButton.icon(
-            onPressed: () => showDialog<void>(
-              context: context,
-              builder: (_) =>
-                  BuildEditorDialog(bundle: bundle, existing: build),
-            ),
-            icon: const Icon(Icons.edit_outlined),
-            label: const Text('Actualizar progreso'),
+            ],
           ),
-        ),
+          const SizedBox(height: 16),
+          if (error != null) Text(error, style: bad),
+          for (final p in phases ?? <PhaseNeeds>[])
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Icon(
+                    p.done ? Icons.check_circle : Icons.radio_button_unchecked,
+                    color: p.done ? theme.colorScheme.primary : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      p.done
+                          ? '${p.phase.label}: ¡tienes todo!'
+                          : '${p.phase.label}: faltan '
+                                '${p.plan.lines.where((l) => l.missing > 0).length} materiales'
+                                '${p.plan.expMissing > 0 ? ', ${formatNumber(p.plan.expMissing)} de EXP' : ''}'
+                                '${p.plan.moraMissing > 0 ? ', ${formatNumber(p.plan.moraMissing)} de Mora' : ''}',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ]),
         if (schedule != null && farm != null) ...[
           _card('Plan de resina', [
             Wrap(
@@ -456,9 +507,7 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                   for (final r in schedule.days.first.runs)
                     TaskRef.runKey(r.task),
                 },
-                where: (t) => t.key.startsWith(
-                  'resina|${character?.name ?? build.characterId}|',
-                ),
+                where: (t) => t.key.startsWith('resina|${build.owner(byId)}|'),
               ),
             const SizedBox(height: 8),
             ExpansionTile(
@@ -513,15 +562,16 @@ class _BuildPageState extends ConsumerState<BuildPage> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              for (final (i, item) in characterExpItems.indexed)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    materialIcon(byId[item.id]?.image),
-                    const SizedBox(width: 6),
-                    _numberField(books[i], item.label, width: 200),
-                  ],
-                ),
+              if (character != null)
+                for (final (i, item) in characterExpItems.indexed)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      materialIcon(byId[item.id]?.image),
+                      const SizedBox(width: 6),
+                      _numberField(books[i], item.label, width: 200),
+                    ],
+                  ),
               if (weapon != null)
                 for (final (i, item) in weaponExpItems.indexed)
                   Row(
@@ -570,6 +620,11 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                           : 'Faltan ${formatNumber(line.missing)}',
                       style: line.missing == 0 ? good : bad,
                     ),
+                    if (reservedNote(line.id).isNotEmpty)
+                      Text(
+                        'Reservados${reservedNote(line.id)}',
+                        style: theme.textTheme.bodySmall,
+                      ),
                   ],
                 ),
               ),

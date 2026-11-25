@@ -97,6 +97,8 @@ void main() {
         matching: find.text('Ajustes'),
       ));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('appearance-dark')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('appearance-dark')));
     await tester.pumpAndSettle();
     expect(repository.preferences.appearance, AppAppearance.dark);
@@ -130,6 +132,8 @@ void main() {
         matching: find.text('Ajustes'),
       ));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('appearance-dark')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('appearance-dark')));
     await tester.pumpAndSettle();
     expect(find.textContaining('No se pudo guardar.'), findsOneWidget);
@@ -138,6 +142,8 @@ void main() {
       ThemeMode.light,
     );
     repository.failSave = false;
+    await tester.ensureVisible(find.byKey(const ValueKey('appearance-dark')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('appearance-dark')));
     await tester.pumpAndSettle();
     expect(repository.preferences.appearance, AppAppearance.dark);
@@ -228,6 +234,8 @@ class _MemoryBuilds implements BuildRepository {
   Future<void> log(String text) async {}
   @override
   Future<List<GenshinBuild>> loadAll() async => [];
+  @override
+  Future<int> activeLimit() async => BuildRepository.defaultLimit;
   @override
   Future<List<HistoryEntry>> history() async => [];
   @override
