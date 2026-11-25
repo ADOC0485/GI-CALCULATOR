@@ -10,6 +10,10 @@ Antes de ejecutarlo:
   2. Haz commit y push de esos cambios.
   3. Ten android/key.properties con tu llave de firma (ver docs/PUBLICAR.md).
 
+Compila y sube dos archivos: el APK (Android) y un .zip para Windows. Los
+dos llevan dentro el actualizador de Shorebird, así que después reciben los
+parches de tool\publish_patch.ps1 sin reinstalar.
+
 Las apps instaladas verán el aviso «Hay una versión nueva» al abrirse.
 Para arreglos pequeños sin reinstalar usa tool\publish_patch.ps1.
 #>
@@ -69,7 +73,24 @@ New-Item -ItemType Directory -Force build\release | Out-Null
 $apk = "build\release\GenshinProgressPlanner-$etiqueta.apk"
 Copy-Item build\app\outputs\flutter-apk\app-release.apk $apk -Force
 
+Write-Host "Compilando $etiqueta para Windows con Shorebird..."
+& $shorebird release windows --flutter-version=$VersionFlutter --no-tree-shake-icons
+if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de Windows o su registro en Shorebird.' }
+# The whole Release folder is needed: the exe alone does not start.
+$carpeta = 'build\windows\x64\runner\Release'
+if (-not (Test-Path "$carpeta\GenshinProgressPlanner.exe")) {
+  throw "No encontré $carpeta\GenshinProgressPlanner.exe tras compilar."
+}
+$zip = "build\release\GenshinProgressPlanner-$etiqueta-windows.zip"
+$temporal = Join-Path $env:TEMP "gpp-$etiqueta"
+Remove-Item $temporal -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force "$temporal\Genshin Progress Planner" | Out-Null
+Copy-Item "$carpeta\*" "$temporal\Genshin Progress Planner" -Recurse -Force
+Remove-Item $zip -Force -ErrorAction SilentlyContinue
+Compress-Archive -Path "$temporal\Genshin Progress Planner" -DestinationPath $zip
+Remove-Item $temporal -Recurse -Force
+
 Write-Host "Publicando $etiqueta en $Repositorio..."
-gh release create $etiqueta $apk --repo $Repositorio --target $rama --title $etiqueta --notes $Notas --latest
+gh release create $etiqueta $apk $zip --repo $Repositorio --target $rama --title $etiqueta --notes $Notas --latest
 if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear la versión en GitHub.' }
 Write-Host "Listo: https://github.com/$Repositorio/releases/tag/$etiqueta"

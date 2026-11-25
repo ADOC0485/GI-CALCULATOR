@@ -8,11 +8,16 @@ import 'package:url_launcher/url_launcher.dart';
 import 'app_update.dart';
 import 'code_push.dart';
 
-/// Opens the download: the APK on Android, the release page elsewhere.
+/// Opens the download: the APK on Android, the .zip on Windows, the release
+/// page elsewhere.
 Future<bool> openUpdate(AppRelease release) {
-  final target = Platform.isAndroid && release.apkUrl != null
-      ? release.apkUrl!
-      : release.pageUrl;
+  final target =
+      switch (Platform.operatingSystem) {
+        'android' => release.apkUrl,
+        'windows' => release.windowsUrl,
+        _ => null,
+      } ??
+      release.pageUrl;
   return launchUrl(Uri.parse(target), mode: LaunchMode.externalApplication);
 }
 
@@ -56,9 +61,11 @@ const dataCredits = [
   'Promedios de recompensas y líneas ley: guías y wikis de la comunidad.',
 ];
 
-const _howToInstall =
-    'Se descarga desde GitHub. Ábrelo y toca «Actualizar»: se instala encima '
-    'y conservas todos tus datos.';
+String get _howToInstall => Platform.isWindows
+    ? 'Se descarga un .zip desde GitHub. Cierra la app, descomprímelo y '
+          'reemplaza la carpeta anterior: tus datos se conservan.'
+    : 'Se descarga desde GitHub. Ábrelo y toca «Actualizar»: se instala '
+          'encima y conservas todos tus datos.';
 
 /// Banner under the top bar when GitHub has a newer version.
 class UpdateBanner extends ConsumerWidget {
@@ -282,8 +289,8 @@ class AboutCard extends ConsumerWidget {
               ],
             ),
             if (newer)
-              const Padding(
-                padding: EdgeInsets.only(top: 12),
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
                 child: Text(_howToInstall),
               ),
             const Divider(height: 40),

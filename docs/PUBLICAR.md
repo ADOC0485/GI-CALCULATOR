@@ -48,6 +48,11 @@ probar, pero no puede actualizar la app publicada.
 El script comprueba la llave, la versión y que todo esté subido, compila el
 APK firmado **con Shorebird** (para que luego pueda recibir parches), lo
 registra en Shorebird y crea la versión `vX.Y.Z` en GitHub con el APK adjunto.
+Después compila la versión de Windows también con Shorebird y adjunta
+`GenshinProgressPlanner-vX.Y.Z-windows.zip` (la carpeta completa con
+`GenshinProgressPlanner.exe`). En PC, la app avisa de versiones nuevas y baja
+ese .zip; para instalarlo se reemplaza la carpeta anterior y los datos se
+conservan.
 Shorebird puede preguntar si quieres continuar: responde `y`. El
 repositorio es público: cualquiera puede ver y descargar cada versión.
 
@@ -90,4 +95,7 @@ detecta y se detiene. Para eso publica una versión nueva. Si un parche sale
 mal, se puede retirar desde [console.shorebird.dev](https://console.shorebird.dev).
 
 Solo reciben parches las apps instaladas desde una versión compilada con
-Shorebird (desde la v0.3.0).
+Shorebird: en Android desde la v0.3.0, y en Windows desde la v0.3.1. El
+script crea el parche para cada plataforma que tenga esa versión. Las
+copias de PC anteriores a la v0.3.1 se compilaron sin Shorebird y nunca
+reciben parches: hay que pasarlas una vez al .zip de la v0.3.1.

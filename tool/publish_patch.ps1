@@ -1,5 +1,6 @@
 ﻿<#
-Envía un parche (arreglo pequeño) a las apps ya instaladas, sin reinstalar.
+Envía un parche (arreglo pequeño) a las apps ya instaladas, sin reinstalar,
+en Android y en Windows (desde la v0.3.1; la v0.3.0 solo existe en Android).
 
 Uso (desde la carpeta del proyecto):
   powershell -ExecutionPolicy Bypass -File tool\publish_patch.ps1
@@ -48,7 +49,12 @@ if (-not (Test-Path $shorebird)) {
   throw 'No encontré Shorebird. Instálalo e inicia sesión (ver docs\PUBLICAR.md).'
 }
 
-Write-Host "Creando parche para la v$version ($version+$codigo)..."
-& $shorebird patch android --release-version "$version+$codigo" --track stable
-if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear el parche.' }
+# Windows releases exist from 0.3.1 on; earlier ones are Android only.
+$plataformas = @('android')
+if ([version]$version -ge [version]'0.3.1') { $plataformas += 'windows' }
+foreach ($plataforma in $plataformas) {
+  Write-Host "Creando parche de $plataforma para la v$version ($version+$codigo)..."
+  & $shorebird patch $plataforma --release-version "$version+$codigo" --track stable
+  if ($LASTEXITCODE -ne 0) { throw "No se pudo crear el parche de $plataforma." }
+}
 Write-Host 'Listo: las apps lo descargan al abrirse y lo usan la siguiente vez que se abren.'

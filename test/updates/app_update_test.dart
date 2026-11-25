@@ -36,10 +36,15 @@ void main() {
           'name': 'GenshinProgressPlanner-v0.3.0.apk',
           'browser_download_url': 'https://x/app.apk',
         },
+        {
+          'name': 'GenshinProgressPlanner-v0.3.0-windows.zip',
+          'browser_download_url': 'https://x/app-windows.zip',
+        },
       ],
     })!;
     expect(release.version, 'v0.3.0');
     expect(release.apkUrl, 'https://x/app.apk');
+    expect(release.windowsUrl, 'https://x/app-windows.zip');
     expect(release.isNewerThan('0.2.0'), isTrue);
     expect(release.isNewerThan('0.3.0'), isFalse);
     expect(

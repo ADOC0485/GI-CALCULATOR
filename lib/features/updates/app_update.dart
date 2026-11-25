@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Version of this build. Keep it equal to `version:` in pubspec.yaml
 /// (a test checks it); publishing bumps both.
-const appVersion = '0.3.0';
+const appVersion = '0.3.1';
 
 /// Repository whose GitHub Releases carry new versions of the app.
 const releasesRepository = 'ADOC0485/GI-CALCULATOR';
@@ -17,12 +17,16 @@ class AppRelease {
     required this.version,
     required this.pageUrl,
     this.apkUrl,
+    this.windowsUrl,
     this.notes = '',
   });
   final String version, pageUrl, notes;
 
   /// Direct download of the Android APK attached to the release, if any.
   final String? apkUrl;
+
+  /// Direct download of the Windows .zip attached to the release, if any.
+  final String? windowsUrl;
 
   bool isNewerThan(String current) => compareVersions(version, current) > 0;
 }
@@ -52,19 +56,19 @@ AppRelease? parseRelease(Map<String, dynamic> json) {
   final tag = json['tag_name'];
   final page = json['html_url'];
   if (tag is! String || page is! String || json['draft'] == true) return null;
-  String? apk;
+  String? apk, windows;
   for (final asset in (json['assets'] as List?) ?? const []) {
-    if (asset is Map &&
-        '${asset['name']}'.toLowerCase().endsWith('.apk') &&
-        asset['browser_download_url'] is String) {
-      apk = asset['browser_download_url'] as String;
-      break;
-    }
+    if (asset is! Map || asset['browser_download_url'] is! String) continue;
+    final name = '${asset['name']}'.toLowerCase();
+    final url = asset['browser_download_url'] as String;
+    if (name.endsWith('.apk')) apk ??= url;
+    if (name.endsWith('-windows.zip')) windows ??= url;
   }
   return AppRelease(
     version: tag,
     pageUrl: page,
     apkUrl: apk,
+    windowsUrl: windows,
     notes: json['body'] is String ? json['body'] as String : '',
   );
 }
