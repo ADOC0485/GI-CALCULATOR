@@ -84,6 +84,49 @@ void main() {
     expect(run.condensed, 0);
   });
 
+  test('Each run says what to spend, which refill and how many entries', () {
+    final domain = FarmTask(
+      kind: TaskKind.talentDomain,
+      phase: BuildPhase.talents,
+      title: 'Dominio de talentos: Guía de la contienda',
+      runs: 24,
+      resin: 20,
+      owner: 'Skirk',
+    );
+    final boss = FarmTask(
+      kind: TaskKind.worldBoss,
+      phase: BuildPhase.characterLevel,
+      title: 'Jefe de mundo',
+      runs: 1,
+      resin: 40,
+    );
+    final run = PlannedRun(domain, 24, 480, 240);
+    // 187 original + 1 transient + 1 fragile: only the transient is needed.
+    final pays = payDay(
+      [run, PlannedRun(boss, 1, 40)],
+      original: 187,
+      transient: 1,
+      fragile: 1,
+    );
+    expect(
+      pays.first.describe('Skirk'),
+      '4 concentradas + 240 de resina normal\n'
+      'La original no alcanza: usa 1 resina transitoria\n'
+      'Skirk · Entra 10 veces (4 con concentrada y 6 con 40)',
+    );
+    // The boss needs 40 more: the fragile one, after the transient.
+    expect(pays.last.transient, 0);
+    expect(pays.last.fragile, 1);
+    expect(pays.last.entries, 'Entra 1 vez');
+    // Enough original: no refill, and an odd 20 is one entry of 20.
+    final plenty = payDay([PlannedRun(domain, 3, 60)], original: 200).single;
+    expect(plenty.refills, isNull);
+    expect(
+      plenty.describe(''),
+      '60 de resina normal\nEntra 2 veces (1 con 40 y 1 con 20)',
+    );
+  });
+
   testWidgets('Top bar shows the countdown and saves edits', (tester) async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);

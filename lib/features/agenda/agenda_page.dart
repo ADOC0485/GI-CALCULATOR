@@ -275,31 +275,40 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
                             'Nada con resina: aprovecha para explorar o la Tetera.',
                           ),
                         ),
-                      for (final run in day.runs)
+                      for (final pay in payDay(
+                        day.runs,
+                        original: isToday(day.date)
+                            ? resin?.originalAt(DateTime.now())
+                            : null,
+                        transient: resin?.transient ?? 0,
+                        fragile: resin?.fragile ?? 0,
+                      ))
                         if (isToday(day.date))
                           CheckboxListTile(
                             contentPadding: EdgeInsets.zero,
-                            value: doneKeys.contains(TaskRef.runKey(run.task)),
+                            value: doneKeys.contains(
+                              TaskRef.runKey(pay.run.task),
+                            ),
                             onChanged: (_) => toggleTask(
                               context,
                               ref,
-                              TaskRef.run(run),
+                              TaskRef.run(pay.run),
                               doneToday,
                             ),
                             secondary: materialIcon(
-                              byId[run.task.materialId]?.image,
+                              byId[pay.run.task.materialId]?.image,
                             ),
-                            title: Text('${run.task.title} × ${run.count}'),
-                            subtitle: Text(_runDetails(run)),
+                            title: Text(pay.run.task.title),
+                            subtitle: Text(_runDetails(pay)),
                           )
                         else
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: materialIcon(
-                              byId[run.task.materialId]?.image,
+                              byId[pay.run.task.materialId]?.image,
                             ),
-                            title: Text('${run.task.title} × ${run.count}'),
-                            subtitle: Text(_runDetails(run)),
+                            title: Text(pay.run.task.title),
+                            subtitle: Text(_runDetails(pay)),
                           ),
                       if (isToday(day.date))
                         DoneTodayTiles(
@@ -355,6 +364,9 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
   }
 }
 
-String _runDetails(PlannedRun run) =>
-    '${run.task.owner} · ${run.task.phase.label} · ${run.resin} de resina'
-    '${run.condensed > 0 ? ' (${run.condensedCount} concentrada)' : ''}';
+String _runDetails(RunPayment pay) => pay.describe(
+  [
+    if (pay.run.task.owner.isNotEmpty) pay.run.task.owner,
+    pay.run.task.phase.label,
+  ].join(' · '),
+);

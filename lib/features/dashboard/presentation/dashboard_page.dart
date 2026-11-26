@@ -11,6 +11,7 @@ import '../../../core/presentation/page_frame.dart';
 import '../../agenda/agenda_page.dart';
 import '../../builds/data/build_repository.dart';
 import '../../builds/domain/build.dart';
+import '../../builds/domain/resin_planner.dart';
 import '../../builds/presentation/build_editor_dialog.dart';
 import '../../builds/presentation/build_page.dart';
 import '../../catalog/domain/catalog.dart';
@@ -467,6 +468,16 @@ class _TodayCardState extends ConsumerState<_TodayCard> {
         ref.watch(doneTodayProvider).asData?.value ?? const <DoneTask>[];
     final doneKeys = {for (final t in done) t.key};
     final runs = widget.plan?.schedule.days.firstOrNull?.runs ?? const [];
+    final resin = ref.watch(resinProvider).asData?.value;
+    final pay = {
+      for (final p in payDay(
+        runs,
+        original: resin?.originalAt(DateTime.now()),
+        transient: resin?.transient ?? 0,
+        fragile: resin?.fragile ?? 0,
+      ))
+        p.run: p,
+    };
     final shown = {
       for (final (task, _) in _routine) task.key,
       for (final run in runs) TaskRef.runKey(run.task),
@@ -548,11 +559,8 @@ class _TodayCardState extends ConsumerState<_TodayCard> {
                   onChanged: (_) =>
                       toggleTask(context, ref, TaskRef.run(run), done),
                   secondary: materialIcon(byId[run.task.materialId]?.image),
-                  title: Text('${run.task.title} × ${run.count}'),
-                  subtitle: Text(
-                    '${run.task.owner} · ${run.resin} de resina'
-                    '${run.condensed > 0 ? ' (${run.condensedCount} concentrada)' : ''}',
-                  ),
+                  title: Text(run.task.title),
+                  subtitle: Text(pay[run]!.describe(run.task.owner)),
                 ),
             DoneTodayTiles(shown: shown),
           ],

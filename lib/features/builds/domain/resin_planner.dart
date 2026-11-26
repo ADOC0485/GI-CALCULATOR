@@ -551,6 +551,120 @@ class PlannedRun {
   int get condensedCount => condensed ~/ condensedResin;
 }
 
+/// Domains and ley lines take Condensed Resin and the 40-resin double
+/// claim; bosses do not.
+bool takesCondensed(TaskKind kind) => switch (kind) {
+  TaskKind.talentDomain ||
+  TaskKind.weaponDomain ||
+  TaskKind.expLeyLine ||
+  TaskKind.moraLeyLine => true,
+  _ => false,
+};
+
+/// How to pay one planned run in the game.
+class RunPayment {
+  const RunPayment(this.run, {this.transient = 0, this.fragile = 0});
+  final PlannedRun run;
+
+  /// Refills to use first because the Original Resin is not enough:
+  /// Transient Resin before Fragile Resin.
+  final int transient, fragile;
+
+  int get condensed => run.condensedCount;
+
+  /// Resin paid with Original Resin (and refills).
+  int get normal => run.resin - run.condensed;
+
+  /// '4 concentradas + 240 de resina normal'.
+  String get spend => [
+    if (condensed > 0) '$condensed concentrada${condensed == 1 ? '' : 's'}',
+    if (normal > 0) '$normal de resina normal',
+  ].join(' + ');
+
+  /// What refill to use, or null when the Original Resin is enough.
+  String? get refills {
+    final parts = [
+      if (transient > 0)
+        '$transient resina${transient == 1 ? '' : 's'} '
+            'transitoria${transient == 1 ? '' : 's'}',
+      if (fragile > 0)
+        '$fragile resina${fragile == 1 ? '' : 's'} '
+            'frágil${fragile == 1 ? '' : 'es'}',
+    ];
+    if (parts.isEmpty) return null;
+    return 'La original no alcanza: usa ${_joinEs(parts)}';
+  }
+
+  /// 'Entra 10 veces (4 con concentrada y 6 con 40)'.
+  String get entries {
+    if (!takesCondensed(run.task.kind)) {
+      return 'Entra ${run.count} ${run.count == 1 ? 'vez' : 'veces'}';
+    }
+    final double = normal ~/ 40;
+    final single = (normal % 40) ~/ 20;
+    final total = condensed + double + single;
+    final parts = [
+      if (condensed > 0) '$condensed con concentrada',
+      if (double > 0) '$double con 40',
+      if (single > 0) '$single con 20',
+    ];
+    return 'Entra $total ${total == 1 ? 'vez' : 'veces'} (${_joinEs(parts)})';
+  }
+}
+
+extension RunPaymentText on RunPayment {
+  /// The lines shown under the run: what to spend, the refill if any, and
+  /// how many times to enter, after [prefix] (owner or phase).
+  String describe(String prefix) => [
+    spend,
+    ?refills,
+    [if (prefix.isNotEmpty) prefix, entries].join(' · '),
+  ].join('\n');
+}
+
+String _joinEs(List<String> parts) => parts.length < 2
+    ? parts.join()
+    : '${parts.sublist(0, parts.length - 1).join(', ')} y ${parts.last}';
+
+/// How to pay a day's runs, in order: Original Resin first, then Transient
+/// Resin (it expires), then Fragile Resin only while still short.
+List<RunPayment> payDay(
+  List<PlannedRun> runs, {
+  int? original,
+  int transient = 0,
+  int fragile = 0,
+}) {
+  var left = original ?? 0;
+  final out = <RunPayment>[];
+  for (final run in runs) {
+    var need = run.resin - run.condensed;
+    var t = 0, f = 0;
+    if (original != null) {
+      final fromOriginal = need < left ? need : left;
+      left -= fromOriginal;
+      need -= fromOriginal;
+      while (need > 0 && transient > 0) {
+        transient--;
+        t++;
+        left += 60;
+        final take = need < left ? need : left;
+        left -= take;
+        need -= take;
+      }
+      while (need > 0 && fragile > 0) {
+        fragile--;
+        f++;
+        left += 60;
+        final take = need < left ? need : left;
+        left -= take;
+        need -= take;
+      }
+    }
+    out.add(RunPayment(run, transient: t, fragile: f));
+  }
+  return out;
+}
+
 class DayPlan {
   DayPlan(this.date);
   final DateTime date;
@@ -636,13 +750,7 @@ ResinSchedule scheduleResin(
       var count = 0;
       var spent = 0;
       var fromCondensed = 0;
-      final acceptsCondensed = switch (task.kind) {
-        TaskKind.talentDomain ||
-        TaskKind.weaponDomain ||
-        TaskKind.expLeyLine ||
-        TaskKind.moraLeyLine => true,
-        _ => false,
-      };
+      final acceptsCondensed = takesCondensed(task.kind);
       while (task.remaining > 0) {
         final weekly = task.kind == TaskKind.weeklyBoss;
         final key = task.bossKey ?? task.title;

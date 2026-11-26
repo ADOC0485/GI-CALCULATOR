@@ -489,17 +489,19 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                 'Hoy no hay nada que hacer con resina para esta build.',
               ),
             if (schedule.days.isNotEmpty)
-              for (final run in schedule.days.first.runs)
+              for (final pay in payDay(
+                schedule.days.first.runs,
+                original: resin?.originalAt(DateTime.now()),
+                transient: resin?.transient ?? 0,
+                fragile: resin?.fragile ?? 0,
+              ))
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
-                  value: doneKeys.contains(TaskRef.runKey(run.task)),
-                  onChanged: (_) => _toggle(TaskRef.run(run), doneToday),
-                  secondary: materialIcon(byId[run.task.materialId]?.image),
-                  title: Text('${run.task.title} × ${run.count}'),
-                  subtitle: Text(
-                    '${run.task.phase.label} · ${run.resin} de resina'
-                    '${run.condensed > 0 ? ' (${run.condensedCount} concentrada)' : ''}',
-                  ),
+                  value: doneKeys.contains(TaskRef.runKey(pay.run.task)),
+                  onChanged: (_) => _toggle(TaskRef.run(pay.run), doneToday),
+                  secondary: materialIcon(byId[pay.run.task.materialId]?.image),
+                  title: Text(pay.run.task.title),
+                  subtitle: Text(pay.describe(pay.run.task.phase.label)),
                 ),
             if (schedule.days.isNotEmpty)
               DoneTodayTiles(
