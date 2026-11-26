@@ -90,79 +90,133 @@ class ProfilesCard extends ConsumerWidget {
               data: (data) => Column(
                 children: [
                   for (final p in data.items)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: ProfileAvatar(profile: p, radius: 22),
-                      title: Text(
-                        p.id == data.activeId ? '${p.name} (en uso)' : p.name,
-                      ),
-                      subtitle: Text(profileDetails(p)),
-                      trailing: Wrap(
-                        spacing: 4,
-                        children: [
-                          if (p.id != data.activeId)
-                            TextButton(
-                              onPressed: () async {
-                                await ref
-                                    .read(profilesProvider.notifier)
-                                    .activate(p.id);
-                                if (context.mounted) context.go('/dashboard');
-                              },
-                              child: const Text('Usar'),
-                            ),
-                          IconButton(
-                            tooltip: 'Editar',
-                            icon: const Icon(Icons.edit_outlined),
-                            onPressed: () => showDialog<void>(
-                              context: context,
-                              builder: (_) => ProfileDialog(existing: p),
-                            ),
-                          ),
-                          if (p.id != data.activeId)
-                            IconButton(
-                              tooltip: 'Eliminar',
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: () async {
-                                final ok = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text(
-                                      '¿Eliminar el perfil de ${p.name}?',
-                                    ),
-                                    content: const Text(
-                                      'Se borran sus builds, inventario, resina, agenda e '
-                                      'historial. No se puede deshacer.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text('Cancelar'),
-                                      ),
-                                      FilledButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: const Text('Eliminar'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (ok == true) {
-                                  await ref
-                                      .read(profilesProvider.notifier)
-                                      .delete(p.id);
-                                }
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
+                    _ProfileRow(profile: p, active: p.id == data.activeId),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+enum _Action { use, edit, delete }
+
+/// One profile in the list. On narrow screens the actions go in a menu so
+/// the name and details keep their room.
+class _ProfileRow extends ConsumerWidget {
+  const _ProfileRow({required this.profile, required this.active});
+  final Profile profile;
+  final bool active;
+
+  Future<void> _run(BuildContext context, WidgetRef ref, _Action action) async {
+    final p = profile;
+    switch (action) {
+      case _Action.use:
+        await ref.read(profilesProvider.notifier).activate(p.id);
+        if (context.mounted) context.go('/dashboard');
+      case _Action.edit:
+        await showDialog<void>(
+          context: context,
+          builder: (_) => ProfileDialog(existing: p),
+        );
+      case _Action.delete:
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('¿Eliminar el perfil de ${p.name}?'),
+            content: const Text(
+              'Se borran sus builds, inventario, resina, agenda e '
+              'historial. No se puede deshacer.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Eliminar'),
+              ),
+            ],
+          ),
+        );
+        if (ok == true) {
+          await ref.read(profilesProvider.notifier).delete(p.id);
+        }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final p = profile;
+    final actions = [
+      if (!active) _Action.use,
+      _Action.edit,
+      if (!active) _Action.delete,
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 480;
+        final Widget trailing = narrow
+            ? PopupMenuButton<_Action>(
+                key: ValueKey('profile-menu-${p.id}'),
+                tooltip: 'Opciones',
+                onSelected: (a) => _run(context, ref, a),
+                itemBuilder: (_) => [
+                  for (final a in actions)
+                    PopupMenuItem(
+                      value: a,
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(switch (a) {
+                          _Action.use => Icons.login,
+                          _Action.edit => Icons.edit_outlined,
+                          _Action.delete => Icons.delete_outline,
+                        }),
+                        title: Text(switch (a) {
+                          _Action.use => 'Usar',
+                          _Action.edit => 'Editar',
+                          _Action.delete => 'Eliminar',
+                        }),
+                      ),
+                    ),
+                ],
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!active)
+                    TextButton(
+                      onPressed: () => _run(context, ref, _Action.use),
+                      child: const Text('Usar'),
+                    ),
+                  IconButton(
+                    tooltip: 'Editar',
+                    icon: const Icon(Icons.edit_outlined),
+                    onPressed: () => _run(context, ref, _Action.edit),
+                  ),
+                  if (!active)
+                    IconButton(
+                      tooltip: 'Eliminar',
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => _run(context, ref, _Action.delete),
+                    ),
+                ],
+              );
+        return ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: ProfileAvatar(profile: p, radius: 22),
+          title: Text(
+            active ? '${p.name} (en uso)' : p.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(profileDetails(p)),
+          trailing: trailing,
+        );
+      },
     );
   }
 }

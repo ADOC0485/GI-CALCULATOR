@@ -93,6 +93,23 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('On a phone the profile actions go in a menu', (tester) async {
+    final container = await mount(tester);
+    await container
+        .read(profilesProvider.notifier)
+        .save(const Profile(id: 'p2', name: 'ADOC', adventureRank: 58));
+    tester.view.physicalSize = const Size(380, 1600);
+    await tester.pumpAndSettle();
+    expect(find.text('Usar'), findsNothing);
+    final name = tester.getSize(find.text('ADOC'));
+    expect(name.width, greaterThan(name.height));
+    await tester.tap(find.byKey(const ValueKey('profile-menu-p2')));
+    await tester.pumpAndSettle();
+    expect(find.text('Usar'), findsOneWidget);
+    expect(find.text('Eliminar'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Receiving the same profile again asks before replacing', (
     tester,
   ) async {
