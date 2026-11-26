@@ -36,29 +36,52 @@ void main() {
     );
     expect(r.originalAt(t0.add(const Duration(hours: 5))), 260);
     expect(r.normalAt(t0), 260 + 60 + 60);
-    expect(r.totalAt(t0), 380 + 80);
+    expect(r.totalAt(t0), 380 + 120);
     expect(ResinState.fromJson(r.toJson())!.totalAt(t0), r.totalAt(t0));
   });
 
   test('Condensed Resin goes to domains and ley lines, never to bosses', () {
-    FarmTask task(TaskKind kind, int resin) => FarmTask(
+    FarmTask task(TaskKind kind, int resin, int runs) => FarmTask(
       kind: kind,
       phase: BuildPhase.characterLevel,
       title: kind.label,
-      runs: 1,
+      runs: runs,
       resin: resin,
     );
-    final boss = task(TaskKind.worldBoss, 40);
-    final ley = task(TaskKind.expLeyLine, 20);
+    final boss = task(TaskKind.worldBoss, 40, 1);
+    final ley = task(TaskKind.expLeyLine, 20, 4);
     final schedule = scheduleResin(
       [boss, ley],
       start: DateTime(2026, 11, 23),
-      startResin: 40,
+      startResin: 60,
       startCondensed: 1,
     );
     final runs = schedule.days.first.runs;
     expect(runs.firstWhere((r) => r.task == boss).condensed, 0);
-    expect(runs.firstWhere((r) => r.task == ley).condensed, 20);
+    // One condensed is worth 60 and claims three rewards at once.
+    final leyRun = runs.firstWhere((r) => r.task == ley);
+    expect(leyRun.count, 4);
+    expect(leyRun.condensed, 60);
+    expect(leyRun.condensedCount, 1);
+  });
+
+  test('Condensed Resin is kept when fewer than three claims are left', () {
+    final ley = FarmTask(
+      kind: TaskKind.talentDomain,
+      phase: BuildPhase.talents,
+      title: 'Dominio',
+      runs: 2,
+      resin: 20,
+    );
+    final schedule = scheduleResin(
+      [ley],
+      start: DateTime(2026, 11, 23),
+      startResin: 40,
+      startCondensed: 1,
+    );
+    final run = schedule.days.first.runs.single;
+    expect(run.count, 2);
+    expect(run.condensed, 0);
   });
 
   testWidgets('Top bar shows the countdown and saves edits', (tester) async {
@@ -84,7 +107,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('20/200'), findsOneWidget);
     expect(find.textContaining('+1 en 08:00'), findsOneWidget);
-    expect(find.text('Total 100'), findsOneWidget);
+    expect(find.text('Total 140'), findsOneWidget);
     // More than 5 condensed is not allowed, as in the game.
     await tester.tap(find.byKey(const ValueKey('resin-edit')));
     await tester.pumpAndSettle();

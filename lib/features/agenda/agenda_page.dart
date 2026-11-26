@@ -357,4 +357,4 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
 
 String _runDetails(PlannedRun run) =>
     '${run.task.owner} · ${run.task.phase.label} · ${run.resin} de resina'
-    '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}';
+    '${run.condensed > 0 ? ' (${run.condensedCount} concentrada)' : ''}';

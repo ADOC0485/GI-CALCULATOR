@@ -551,7 +551,7 @@ class _TodayCardState extends ConsumerState<_TodayCard> {
                   title: Text('${run.task.title} × ${run.count}'),
                   subtitle: Text(
                     '${run.task.owner} · ${run.resin} de resina'
-                    '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}',
+                    '${run.condensed > 0 ? ' (${run.condensedCount} concentrada)' : ''}',
                   ),
                 ),
             DoneTodayTiles(shown: shown),

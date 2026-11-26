@@ -498,7 +498,7 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                   title: Text('${run.task.title} × ${run.count}'),
                   subtitle: Text(
                     '${run.task.phase.label} · ${run.resin} de resina'
-                    '${run.condensed > 0 ? ' (${run.condensed ~/ 40} concentrada)' : ''}',
+                    '${run.condensed > 0 ? ' (${run.condensedCount} concentrada)' : ''}',
                   ),
                 ),
             if (schedule.days.isNotEmpty)

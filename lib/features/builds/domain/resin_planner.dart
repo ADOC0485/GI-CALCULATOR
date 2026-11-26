@@ -537,13 +537,18 @@ FarmPlan farmTasks({
   );
 }
 
+/// What one Condensed Resin is worth: it claims three 20-resin rewards at
+/// once (game version 6.0 "Luna I" onwards).
+const condensedResin = 60;
+
 class PlannedRun {
   const PlannedRun(this.task, this.count, this.resin, [this.condensed = 0]);
   final FarmTask task;
   final int count, resin;
 
-  /// Part of [resin] paid with Condensed Resin (40 each).
+  /// Part of [resin] paid with Condensed Resin ([condensedResin] each).
   final int condensed;
+  int get condensedCount => condensed ~/ condensedResin;
 }
 
 class DayPlan {
@@ -589,7 +594,7 @@ ResinSchedule scheduleResin(
   final days = <DayPlan>[];
   var resin = startResin;
   // Condensed Resin, in resin units: only domains and ley lines accept it.
-  var condensed = startCondensed * 40;
+  var condensed = startCondensed * condensedResin;
   var total = 0;
   final weeklyDone = <String>{};
   var weeklyClaims = 0;
@@ -644,9 +649,19 @@ ResinSchedule scheduleResin(
         if (weekly && weeklyDone.contains(key)) break;
         // Only the first three weekly boss claims of the week are discounted.
         final cost = weekly ? (weeklyClaims < 3 ? 30 : 60) : task.resin;
-        if (acceptsCondensed && condensed >= cost) {
-          condensed -= cost;
-          fromCondensed += cost;
+        // A Condensed Resin claims several rewards at once: use it only when
+        // all of them are still needed.
+        final batch = condensedResin ~/ cost;
+        if (acceptsCondensed &&
+            cost * batch == condensedResin &&
+            condensed >= condensedResin &&
+            task.remaining >= batch) {
+          condensed -= condensedResin;
+          fromCondensed += condensedResin;
+          spent += condensedResin;
+          task.remaining -= batch;
+          count += batch;
+          continue;
         } else if (resin >= cost) {
           resin -= cost;
         } else {

@@ -5,8 +5,9 @@ import '../progression/data/scenario_repository.dart';
 /// The player's resin, as in the game.
 ///
 /// * Original Resin regenerates 1 every 8 minutes up to 200.
-/// * Condensed Resin (max 5) is worth 40 and only works on domains and
-///   ley lines, never on world or weekly bosses.
+/// * Condensed Resin (max 5) is worth 60 and claims triple rewards in one go
+///   (since game version 6.0 "Luna I"); it only works on domains and ley
+///   lines, never on world or weekly bosses.
 /// * Fragile and Transient Resin each restore 60 Original Resin.
 class ResinState {
   const ResinState({
@@ -23,7 +24,7 @@ class ResinState {
 
   static const cap = 200;
   static const maxCondensed = 5;
-  static const condensedValue = 40;
+  static const condensedValue = 60;
   static const refillValue = 60;
   static const regen = Duration(minutes: 8);
 
@@ -58,7 +59,7 @@ class ResinState {
   int normalAt(DateTime now) =>
       originalAt(now) + refillValue * (fragile + transient);
 
-  /// Everything together, condensed counted at 40.
+  /// Everything together, condensed counted at 60.
   int totalAt(DateTime now) => normalAt(now) + condensedValue * condensed;
 
   /// Spends resin as the game does: [original] Original Resin and

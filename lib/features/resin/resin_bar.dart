@@ -469,7 +469,7 @@ class _ResinDialogState extends ConsumerState<ResinDialog> {
             _row(
               condensed,
               'Concentrada',
-              'Máximo 5. Vale 40 y da recompensa doble, '
+              'Máximo 5. Vale 60 y da el triple de recompensa, '
                   'pero solo en dominios y líneas ley (no en jefes).',
               Icons.hexagon_outlined,
               Colors.amber,
