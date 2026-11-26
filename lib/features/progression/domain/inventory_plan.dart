@@ -31,10 +31,28 @@ class LeyLineRates {
   final int experience, mora;
   static const resinPerRun = 20;
   static const _experience = [
-    25000, 38500, 52500, 67500, 82500, 102500, 122500, 122500, 122500, 122500,
+    25000,
+    38500,
+    52500,
+    67500,
+    82500,
+    102500,
+    122500,
+    122500,
+    122500,
+    122500,
   ];
   static const _mora = [
-    12000, 20000, 28000, 36000, 44000, 52000, 60000, 60000, 60000, 60000,
+    12000,
+    20000,
+    28000,
+    36000,
+    44000,
+    52000,
+    60000,
+    60000,
+    60000,
+    60000,
   ];
 
   /// Adventure Rank that unlocks each World Level (index = World Level).
@@ -125,11 +143,16 @@ class InventoryPlan {
     required this.craftingMora,
     required this.moraRuns,
     required this.lines,
+    this.used = const {},
   });
   final int expNeeded, expOwned, levelWithOwned, expRuns;
   final Map<String, int> booksToFarm;
   final int moraNeeded, moraOwned, craftingMora, moraRuns;
   final List<MaterialLine> lines;
+
+  /// Units taken from the owned materials, by id: what is used directly plus
+  /// what goes into crafting, lower tiers that are not needed included.
+  final Map<String, int> used;
   int get expMissing => (expNeeded - expOwned).clamp(0, expNeeded);
   int get moraTotal => moraNeeded + craftingMora;
   int get moraMissing => (moraTotal - moraOwned).clamp(0, moraTotal);
@@ -143,7 +166,9 @@ int _ceilDiv(int a, int b) => a <= 0 ? 0 : (a + b - 1) ~/ b;
 /// Compares a progression result with what the player already owns.
 ///
 /// [ownedBooks] follows the order of [characterExpItems] / [weaponExpItems].
-/// Lower tiers are crafted 3→1 only as far as higher tiers still need them.
+/// Lower tiers are crafted 3→1 only as far as higher tiers still need them,
+/// even when the build itself does not need the lower tier (for example
+/// spare Teachings and Guides turned into the Philosophies a talent needs).
 InventoryPlan planInventory({
   required CatalogBundle bundle,
   required CatalogRecord record,
@@ -153,12 +178,16 @@ InventoryPlan planInventory({
   int ownedMora = 0,
   LeyLineRates rates = const LeyLineRates(),
 }) {
-  require(rates.experience > 0 && rates.mora > 0, 'El rendimiento de las líneas ley debe ser mayor que 0.');
+  require(
+    rates.experience > 0 && rates.mora > 0,
+    'El rendimiento de las líneas ley debe ser mayor que 0.',
+  );
   final character = record.kind == CatalogKind.character;
   final items = character ? characterExpItems : weaponExpItems;
   var expOwned = 0;
   for (var i = 0; i < items.length; i++) {
-    expOwned += items[i].experience * (i < ownedBooks.length ? ownedBooks[i] : 0);
+    expOwned +=
+        items[i].experience * (i < ownedBooks.length ? ownedBooks[i] : 0);
   }
   final expMissing = (result.experience - expOwned).clamp(0, result.experience);
   final books = <String, int>{};
@@ -180,13 +209,18 @@ InventoryPlan planInventory({
     for (final e in result.materials.entries)
       if (e.key != _mora) e.key: e.value,
   };
+  // Every needed item and the lower tiers it can be crafted from.
+  final family = <String>{};
+  for (final id in needed.keys) {
+    for (String? c = id; c != null && family.add(c); c = recipes[c]?.fromId) {}
+  }
   int owned(String id) => ownedMaterials[id] ?? 0;
   int need(String id) => needed[id] ?? 0;
 
   // Units of [id] still required for itself and every tier above it.
   int upDemand(String id) {
     final parent = parentOf[id];
-    final above = parent == null || !needed.containsKey(parent)
+    final above = parent == null || !family.contains(parent)
         ? 0
         : recipes[parent]!.quantity * upDemand(parent);
     return (need(id) + above - owned(id)).clamp(0, 1 << 40);
@@ -201,22 +235,24 @@ InventoryPlan planInventory({
   }
 
   final made = <String, int>{};
+  final inputs = <String, int>{};
   var craftingMora = 0;
-  final order = needed.keys.toList()
-    ..sort((a, b) => depth(a).compareTo(depth(b)));
+  final order = family.toList()..sort((a, b) => depth(a).compareTo(depth(b)));
   for (final id in order) {
     final parent = parentOf[id];
-    if (parent == null || !needed.containsKey(parent)) continue;
+    if (parent == null || !family.contains(parent)) continue;
     final available = owned(id) + (made[id] ?? 0);
     final spare = available - need(id);
     final recipe = recipes[parent]!;
     if (spare < recipe.quantity) continue;
     final parentShort = upDemand(parent) - (made[parent] ?? 0);
-    final count = [spare ~/ recipe.quantity, parentShort].reduce(
-      (a, b) => a < b ? a : b,
-    );
+    final count = [
+      spare ~/ recipe.quantity,
+      parentShort,
+    ].reduce((a, b) => a < b ? a : b);
     if (count <= 0) continue;
     made[parent] = (made[parent] ?? 0) + count;
+    inputs[id] = count * recipe.quantity;
     craftingMora += count * recipe.mora;
   }
 
@@ -237,9 +273,18 @@ InventoryPlan planInventory({
           id,
           needed[id]!,
           owned(id).clamp(0, needed[id]!),
-          (made[id] ?? 0).clamp(0, (needed[id]! - owned(id)).clamp(0, needed[id]!)),
+          (made[id] ?? 0).clamp(
+            0,
+            (needed[id]! - owned(id)).clamp(0, needed[id]!),
+          ),
         ),
     ],
+    used: {
+      for (final id in family)
+        if ((need(id) + (inputs[id] ?? 0)).clamp(0, owned(id)) case final n
+            when n > 0)
+          id: n,
+    },
   );
 }
 
@@ -316,4 +361,3 @@ List<String> _displayOrder(
   });
   return list;
 }
-

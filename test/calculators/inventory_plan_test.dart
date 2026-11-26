@@ -13,9 +13,9 @@ void main() {
     '.catalog-cache/genshin-api-62af3592e7ef4498d90e68e7967096c5aabc8f33.zip',
   );
   final skip = zip.existsSync() ? false : 'sin caché local de genshin-api';
-  final spanish =
-      jsonDecode(File('assets/catalog/nombres-es.json').readAsStringSync())
-          as Map<String, dynamic>;
+  final spanish = jsonDecode(
+    File('assets/catalog/nombres-es.json').readAsStringSync(),
+  ) as Map<String, dynamic>;
   Map<String, String> part(String key) =>
       (spanish[key] as Map<String, dynamic>).cast<String, String>();
   late final CatalogBundle bundle = catalogFromArchive(
@@ -38,7 +38,10 @@ void main() {
     expect(LeyLineRates.forWorldLevel(0).mora, 12000);
     expect(LeyLineRates.forWorldLevel(5).experience, 102500);
     expect(LeyLineRates.forWorldLevel(8).mora, 60000);
-    expect(() => LeyLineRates.forWorldLevel(10), throwsA(isA<CalculationException>()));
+    expect(
+      () => LeyLineRates.forWorldLevel(10),
+      throwsA(isA<CalculationException>()),
+    );
     expect(LeyLineRates.highestFor(35), 4);
     expect(LeyLineRates.highestFor(60), 9);
     expect(
@@ -78,7 +81,15 @@ void main() {
     expect(characters.every((r) => r.progression!.gender != null), isTrue);
     expect(
       {for (final r in characters) r.progression!.element},
-      containsAll(['Anemo', 'Cryo', 'Dendro', 'Electro', 'Geo', 'Hydro', 'Pyro']),
+      containsAll([
+        'Anemo',
+        'Cryo',
+        'Dendro',
+        'Electro',
+        'Geo',
+        'Hydro',
+        'Pyro',
+      ]),
     );
   }, skip: skip);
 
@@ -93,10 +104,7 @@ void main() {
     );
     final weekly = result.materials.entries.where(
       (e) =>
-          bundle.records
-              .firstWhere((r) => r.id == e.key)
-              .material
-              ?.category ==
+          bundle.records.firstWhere((r) => r.id == e.key).material?.category ==
           'Material de jefe semanal',
     );
     // 6 weekly boss materials per talent 7→10 (crowns are counted apart).
@@ -117,20 +125,17 @@ void main() {
       ownedBooks: const [0, 0, 0],
       ownedMaterials: const {},
     ).lines.map((l) => bundle.records.firstWhere((r) => r.id == l.id)).toList();
-    expect(
-      ordered.map((r) => r.material!.category).toList().sublist(0, 9),
-      [
-        'Especialidad local',
-        'Material de jefe',
-        'Gema de ascensión',
-        'Gema de ascensión',
-        'Gema de ascensión',
-        'Gema de ascensión',
-        'Botín común',
-        'Botín común',
-        'Botín común',
-      ],
-    );
+    expect(ordered.map((r) => r.material!.category).toList().sublist(0, 9), [
+      'Especialidad local',
+      'Material de jefe',
+      'Gema de ascensión',
+      'Gema de ascensión',
+      'Gema de ascensión',
+      'Gema de ascensión',
+      'Botín común',
+      'Botín común',
+      'Botín común',
+    ]);
     expect(ordered[2].material!.craft, isNull); // sliver first
     expect(ordered[3].material!.craft!.fromId, ordered[2].id);
     expect(ordered[7].material!.craft!.fromId, ordered[6].id);
@@ -150,7 +155,19 @@ void main() {
       result.levelingMora + result.ascensionMora + result.talentMora,
       result.materials['material:202'],
     );
-    expect(result.talentMora, 2 * (12500 + 17500 + 25000 + 30000 + 37500 + 120000 + 260000 + 450000 + 700000));
+    expect(
+      result.talentMora,
+      2 *
+          (12500 +
+              17500 +
+              25000 +
+              30000 +
+              37500 +
+              120000 +
+              260000 +
+              450000 +
+              700000),
+    );
     expect(empty.levelWithOwned, 50);
 
     final rich = planInventory(
@@ -203,5 +220,55 @@ void main() {
     expect(line.crafted, 9);
     expect(line.missing, 0);
     expect(plan.craftingMora, 10 * fragment.material!.craft!.mora);
+  }, skip: skip);
+
+  test('Spare Teachings and Guides become the Philosophies a talent needs', () {
+    final skirk = named('Skirk');
+    final result = calculateProgression(
+      bundle,
+      skirk,
+      rules,
+      const ProgressionState(level: 90, ascension: 6, talents: [1, 9, 8]),
+      const ProgressionState(level: 90, ascension: 6, talents: [1, 10, 10]),
+    );
+    final philosophy = bundle.records.firstWhere(
+      (r) =>
+          result.materials.containsKey(r.id) &&
+          r.material?.category == 'Libro de talento' &&
+          r.material?.craft != null,
+    );
+    final guide = philosophy.material!.craft!.fromId;
+    final teaching = bundle.records
+        .firstWhere((r) => r.id == guide)
+        .material!
+        .craft!
+        .fromId;
+    // Only the top tier is needed for these talents.
+    expect(result.materials.containsKey(guide), isFalse);
+    expect(result.materials.containsKey(teaching), isFalse);
+    final need = result.materials[philosophy.id]!;
+    expect(need, 44);
+    final plan = planInventory(
+      bundle: bundle,
+      record: skirk,
+      result: result,
+      ownedBooks: const [0, 0, 0],
+      ownedMaterials: {philosophy.id: 7, guide: 46, teaching: 51},
+    );
+    // 51 Teachings → 17 Guides; 63 Guides → 21 Philosophies.
+    final line = plan.lines.firstWhere((l) => l.id == philosophy.id);
+    expect(line.crafted, 21);
+    expect(line.missing, 44 - 7 - 21);
+    expect(plan.used, {philosophy.id: 7, guide: 46, teaching: 51});
+    expect(
+      plan.craftingMora,
+      17 *
+              bundle.records
+                  .firstWhere((r) => r.id == guide)
+                  .material!
+                  .craft!
+                  .mora +
+          21 * philosophy.material!.craft!.mora,
+    );
   }, skip: skip);
 }

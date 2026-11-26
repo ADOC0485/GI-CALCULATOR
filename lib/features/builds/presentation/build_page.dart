@@ -620,6 +620,16 @@ class _BuildPageState extends ConsumerState<BuildPage> {
                           : 'Faltan ${formatNumber(line.missing)}',
                       style: line.missing == 0 ? good : bad,
                     ),
+                    if (line.crafted > 0)
+                      Tooltip(
+                        message:
+                            'Se hacen en la mesa de alquimia (Síntesis) con '
+                            'los del nivel de abajo que te sobran.',
+                        child: Text(
+                          '${formatNumber(line.crafted)} por síntesis',
+                          style: good,
+                        ),
+                      ),
                     if (reservedNote(line.id).isNotEmpty)
                       Text(
                         'Reservados${reservedNote(line.id)}',

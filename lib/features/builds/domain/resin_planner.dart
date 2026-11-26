@@ -131,21 +131,12 @@ List<PhaseNeeds> buildNeedsFromPool({
       record: record,
       result: result,
       ownedBooks: books,
-      ownedMaterials: {
-        for (final id in result.materials.keys) id: owned[id] ?? 0,
-      },
+      ownedMaterials: owned,
       ownedMora: pool.mora,
       rates: rates,
     );
-    for (final line in plan.lines) {
-      final used = (owned[line.id] ?? 0).clamp(0, line.needed);
-      owned[line.id] = (owned[line.id] ?? 0) - used;
-      final recipe = byId[line.id]?.material?.craft;
-      if (line.crafted > 0 && recipe != null) {
-        owned[recipe.fromId] =
-            ((owned[recipe.fromId] ?? 0) - line.crafted * recipe.quantity)
-                .clamp(0, 1 << 40);
-      }
+    for (final e in plan.used.entries) {
+      owned[e.key] = ((owned[e.key] ?? 0) - e.value).clamp(0, 1 << 40);
     }
     pool.mora = (pool.mora - plan.moraTotal).clamp(0, pool.mora);
     if (identical(books, pool.books)) {
