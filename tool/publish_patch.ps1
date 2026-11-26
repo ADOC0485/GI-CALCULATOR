@@ -54,7 +54,9 @@ $plataformas = @('android')
 if ([version]$version -ge [version]'0.3.1') { $plataformas += 'windows' }
 foreach ($plataforma in $plataformas) {
   Write-Host "Creando parche de $plataforma para la v$version ($version+$codigo)..."
-  & $shorebird patch $plataforma --release-version "$version+$codigo" --track stable
+  # Same icon set as the release (built with --no-tree-shake-icons), or
+  # Shorebird sees the icon font as a changed asset and refuses the patch.
+  & $shorebird patch $plataforma --release-version "$version+$codigo" --track stable --no-tree-shake-icons
   if ($LASTEXITCODE -ne 0) { throw "No se pudo crear el parche de $plataforma." }
 }
 Write-Host 'Listo: las apps lo descargan al abrirse y lo usan la siguiente vez que se abren.'
