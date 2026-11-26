@@ -68,4 +68,40 @@ class ScenarioRepository {
     }
     return query.go();
   }
+
+  /// Raw rows of [profileId], keyed without the profile prefix.
+  Future<Map<String, String>> profileRows(
+    String profileId, {
+    Set<String> skip = const {},
+  }) async {
+    final table = database.calculatorScenarios;
+    final query = database.select(table);
+    final prefix = profilePrefix(profileId);
+    if (profileId == defaultProfileId) {
+      query.where((t) => t.id.like('p:%').not());
+    } else {
+      query.where((t) => t.id.like('$prefix%'));
+    }
+    return {
+      for (final row in await query.get())
+        if (!skip.contains(row.id.substring(prefix.length)))
+          row.id.substring(prefix.length): row.payload,
+    };
+  }
+
+  /// Replaces all data of [profileId] with [rows] (from [profileRows]).
+  Future<void> replaceProfileRows(
+    String profileId,
+    Map<String, String> rows, {
+    Set<String> keep = const {},
+  }) => database.transaction(() async {
+    await deleteProfileData(profileId, keep: keep);
+    final prefix = profilePrefix(profileId);
+    await database.batch((batch) {
+      batch.insertAllOnConflictUpdate(database.calculatorScenarios, [
+        for (final e in rows.entries)
+          CalculatorScenario(id: '$prefix${e.key}', payload: e.value),
+      ]);
+    });
+  });
 }

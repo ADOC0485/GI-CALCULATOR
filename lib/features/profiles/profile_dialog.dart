@@ -99,6 +99,8 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
       if (mounted) Navigator.pop(context, profile);
     } on CalculationException catch (e) {
       setState(() => error = e.message);
+    } on ProfileLimitException catch (e) {
+      setState(() => error = e.message);
     } catch (_) {
       setState(() => error = 'No se pudo guardar el perfil.');
     } finally {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'profile.dart';
 import 'profile_dialog.dart';
+import 'transfer_dialogs.dart';
 
 String profileDetails(Profile p) => [
   p.server,
@@ -19,25 +20,60 @@ class ProfilesCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final profiles = ref.watch(profilesProvider);
+    final count = profiles.asData?.value.items.length;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Text(
+              'Perfiles${count == null ? '' : ' ($count/${ProfilesController.maxProfiles})'}',
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: Text('Perfiles', style: theme.textTheme.titleLarge),
-                ),
                 FilledButton.icon(
                   key: const ValueKey('profile-add'),
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (_) => const ProfileDialog(),
-                  ),
+                  onPressed: () {
+                    if ((count ?? 0) >= ProfilesController.maxProfiles) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(const ProfileLimitException().message),
+                        ),
+                      );
+                      return;
+                    }
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => const ProfileDialog(),
+                    );
+                  },
                   icon: const Icon(Icons.person_add_alt_1_outlined),
                   label: const Text('Nuevo perfil'),
+                ),
+                OutlinedButton.icon(
+                  key: const ValueKey('profile-send'),
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => const SendProfileDialog(),
+                  ),
+                  icon: const Icon(Icons.file_upload_outlined),
+                  label: const Text('Enviar perfil'),
+                ),
+                OutlinedButton.icon(
+                  key: const ValueKey('profile-receive'),
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => const ReceiveProfileDialog(),
+                  ),
+                  icon: const Icon(Icons.download_outlined),
+                  label: const Text('Recibir perfil'),
                 ),
               ],
             ),

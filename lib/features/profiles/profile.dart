@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/database/database_provider.dart';
@@ -60,6 +62,7 @@ class Profile {
     this.adventureRank,
     this.gender,
     this.avatarId,
+    this.transferId,
   });
   final String id, name, server;
   final int worldLevel;
@@ -70,6 +73,26 @@ class Profile {
 
   /// Catalog ID of the character shown as avatar.
   final String? avatarId;
+
+  /// Same on every device the profile was sent to, so a second transfer
+  /// can tell it is the same account. Created the first time it is sent.
+  final String? transferId;
+
+  Profile copyWith({
+    String? id,
+    String? name,
+    String? transferId,
+    bool clearTransferId = false,
+  }) => Profile(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    server: server,
+    worldLevel: worldLevel,
+    adventureRank: adventureRank,
+    gender: gender,
+    avatarId: avatarId,
+    transferId: clearTransferId ? null : transferId ?? this.transferId,
+  );
 
   /// «Bienvenido», «Bienvenida» or a neutral greeting.
   String get greeting => switch (gender) {
@@ -86,6 +109,7 @@ class Profile {
     'adventureRank': adventureRank,
     'gender': gender,
     'avatarId': avatarId,
+    'transferId': transferId,
   };
 
   static Profile? fromJson(Object? value) {
@@ -100,6 +124,9 @@ class Profile {
       adventureRank: value['adventureRank'] as int?,
       gender: value['gender'] as String?,
       avatarId: value['avatarId'] as String?,
+      transferId: value['transferId'] is String
+          ? value['transferId'] as String
+          : null,
     );
   }
 }
@@ -112,6 +139,34 @@ class Profiles {
       items.firstWhere((p) => p.id == activeId, orElse: () => items.first);
 }
 
+/// Thrown when a device already has [ProfilesController.maxProfiles].
+class ProfileLimitException implements Exception {
+  const ProfileLimitException();
+  String get message =>
+      'Ya tienes ${ProfilesController.maxProfiles} perfiles en este '
+      'dispositivo, el máximo. Elimina uno para añadir otro.';
+  @override
+  String toString() => message;
+}
+
+/// A sent profile that cannot be read (another app, or a newer version).
+class ProfilePackageException implements Exception {
+  const ProfilePackageException(this.message);
+  final String message;
+  @override
+  String toString() => message;
+}
+
+String _newId() => DateTime.now().microsecondsSinceEpoch.toString();
+
+String _randomId() {
+  final random = Random.secure();
+  return [
+    for (var i = 0; i < 16; i++)
+      random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ].join();
+}
+
 final profilesProvider = AsyncNotifierProvider<ProfilesController, Profiles>(
   ProfilesController.new,
 );
@@ -119,6 +174,12 @@ final profilesProvider = AsyncNotifierProvider<ProfilesController, Profiles>(
 /// Stores profiles in the shared scenario table under one key.
 class ProfilesController extends AsyncNotifier<Profiles> {
   static const key = 'perfiles';
+
+  /// Profiles one device can hold.
+  static const maxProfiles = 5;
+
+  static const packageFormat = 'genshin-progress-planner/perfil';
+  static const packageVersion = 1;
 
   ScenarioRepository get _shared => ref.read(sharedScenarioRepositoryProvider);
 
@@ -171,9 +232,13 @@ class ProfilesController extends AsyncNotifier<Profiles> {
     final items = [...current.items];
     final index = items.indexWhere((p) => p.id == profile.id);
     if (index < 0) {
+      if (items.length >= maxProfiles) throw const ProfileLimitException();
       items.add(profile);
     } else {
-      items[index] = profile;
+      // The editor does not know the transfer id: keep it.
+      items[index] = profile.transferId == null
+          ? profile.copyWith(transferId: items[index].transferId)
+          : profile;
     }
     final repo = BuildRepository(
       ScenarioRepository(
@@ -207,5 +272,98 @@ class ProfilesController extends AsyncNotifier<Profiles> {
     await _store(
       Profiles([...current.items.where((p) => p.id != id)], current.activeId),
     );
+  }
+
+  /// Everything of one profile, ready to send to another device.
+  Future<Map<String, Object?>> exportPackage(String id) async {
+    final current = await future;
+    var profile = current.items.firstWhere((p) => p.id == id);
+    if (profile.transferId == null) {
+      profile = profile.copyWith(transferId: _randomId());
+      await _store(
+        Profiles([
+          for (final p in current.items) p.id == id ? profile : p,
+        ], current.activeId),
+      );
+    }
+    return {
+      'format': packageFormat,
+      'version': packageVersion,
+      'profile': profile.toJson(),
+      'data': await _shared.profileRows(id, skip: {key}),
+    };
+  }
+
+  /// The profile inside [package], checked.
+  static Profile readPackage(Object? package) {
+    if (package is! Map<String, dynamic> ||
+        package['format'] != packageFormat) {
+      throw const ProfilePackageException('Lo recibido no es un perfil.');
+    }
+    if (package['version'] is! int ||
+        (package['version'] as int) > packageVersion) {
+      throw const ProfilePackageException(
+        'El perfil viene de una versión más nueva de la app. Actualiza esta '
+        'primero.',
+      );
+    }
+    final profile = Profile.fromJson(package['profile']);
+    if (profile == null || package['data'] is! Map) {
+      throw const ProfilePackageException('El perfil recibido está dañado.');
+    }
+    return profile;
+  }
+
+  /// The local copy of the profile in [package], if it was received before.
+  Future<Profile?> sameProfile(Map<String, dynamic> package) async {
+    final incoming = readPackage(package);
+    if (incoming.transferId == null) return null;
+    final current = await future;
+    for (final p in current.items) {
+      if (p.transferId == incoming.transferId) return p;
+    }
+    return null;
+  }
+
+  /// Saves a received profile: over [replace] (keeping its place), or as a
+  /// new profile. Returns the saved profile.
+  Future<Profile> importPackage(
+    Map<String, dynamic> package, {
+    Profile? replace,
+  }) async {
+    final incoming = readPackage(package);
+    final current = await future;
+    if (replace == null && current.items.length >= maxProfiles) {
+      throw const ProfileLimitException();
+    }
+    final names = {for (final p in current.items) p.name};
+    final duplicate = current.items.any(
+      (p) => p.transferId != null && p.transferId == incoming.transferId,
+    );
+    final profile = replace != null
+        ? incoming.copyWith(id: replace.id)
+        : incoming.copyWith(
+            id: _newId(),
+            name: names.contains(incoming.name)
+                ? '${incoming.name} (copia)'
+                : null,
+            // Two local profiles must not answer to the same transfer id.
+            clearTransferId: duplicate,
+          );
+    final rows = {
+      for (final e in (package['data'] as Map).entries)
+        if (e.key is String && e.value is String && e.key != key)
+          e.key as String: e.value as String,
+    };
+    await _shared.replaceProfileRows(profile.id, rows, keep: {key});
+    await _store(
+      Profiles([
+        for (final p in current.items) p.id == profile.id ? profile : p,
+        if (replace == null) profile,
+      ], current.activeId),
+    );
+    // Screens of the active profile read the new data.
+    ref.invalidate(scenarioRepositoryProvider);
+    return profile;
   }
 }
